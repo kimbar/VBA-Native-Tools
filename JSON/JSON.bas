@@ -1,5 +1,17 @@
 Attribute VB_Name = "JSON"
 '@IgnoreModule ModuleWithoutFolder, ProcedureCanBeWrittenAsFunction, ObsoleteLetStatement, ParameterCanBeByVal, FunctionReturnValueDiscarded
+
+' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' '
+'
+'                                        JSON
+'
+' JSON decoder/encoder.
+'
+' For documentation, licensing, updates etc. see:
+' <https://github.com/kimbar/VBA-Native-Tools>
+'
+' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' '
+
 Option Explicit
 
 Private Enum JSONState

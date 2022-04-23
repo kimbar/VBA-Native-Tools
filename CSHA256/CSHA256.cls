@@ -9,6 +9,17 @@ Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 '@IgnoreModule ModuleWithoutFolder, UseMeaningfulName, AssignedByValParameter
 
+' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' '
+'
+'                                      CSHA256
+'
+' SHA-2 256 hashing algorithm class.
+'
+' For documentation, licensing, updates etc. see:
+' <https://github.com/kimbar/VBA-Native-Tools>
+'
+' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' '
+
 Option Explicit
 
 Private hash As Variant
