@@ -55,6 +55,11 @@ Private Sub Class_Initialize()
     Me.Reset
 End Sub
 
+Private Sub Class_Terminate()
+    ' We generaly try to clear the internal state when not needed anymore to avoid spewing the data in memory
+    Me.Reset
+End Sub
+
 Public Sub Reset()
     Dim idx As Long
     For idx = 0 To 63
