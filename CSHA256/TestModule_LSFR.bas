@@ -8,12 +8,14 @@ Option Private Module
 
 Private Assert As Rubberduck.AssertClass
 Private Fakes As Rubberduck.FakesProvider
+Private CurrentDirectory As String
 
 '@ModuleInitialize
 Private Sub ModuleInitialize()
     'this method runs once per module.
     Set Assert = New Rubberduck.AssertClass
     Set Fakes = New Rubberduck.FakesProvider
+    CurrentDirectory = CurDir
 End Sub
 
 '@ModuleCleanup
@@ -21,6 +23,7 @@ Private Sub ModuleCleanup()
     'this method runs once per module.
     Set Assert = Nothing
     Set Fakes = Nothing
+    ChDir CurrentDirectory
 End Sub
 
 Private Sub LSFR_16Bits(ByRef x As Long, ByVal times As Long)
@@ -65,3 +68,47 @@ Public Sub Random1056Bytes()
     Assert.AreEqual "379224785FE5754328B7719CD68F6BCEBFD29232FE1B08A46D5EC1685D4586D1", oSHA256.Digest
 End Sub
 
+'@TestMethod "Level 80"
+Public Sub RandomFile2MB()
+    Const BLOCKSIZE As Long = 2048
+    Const NUMBLOCKS As Long = 1024
+    Dim fso As Object
+    Dim fileNo As Integer
+    Dim block_idx As Long
+    Dim data(0 To BLOCKSIZE - 1) As Byte
+    Dim Filename As String
+    Dim lsfr_state As Long
+    Dim byte_idx As Variant
+
+    Set fso = CreateObject("Scripting.FileSystemObject")
+
+    lsfr_state = &HACE1&
+    ChDir Environ("Temp")
+
+    Filename = "VBA_CSHA256_testfile_RandomFile2MB.bin"
+    If fso.FileExists(Filename) Then fso.DeleteFile (Filename)
+
+    fileNo = FreeFile
+    Open Filename For Binary Access Write As #fileNo
+    For block_idx = 0 To NUMBLOCKS - 1
+        For byte_idx = 0 To BLOCKSIZE - 1
+            data(byte_idx) = (lsfr_state And &HFF)
+            LSFR_16Bits lsfr_state, 8
+        Next
+        Put #fileNo, 1 + block_idx * BLOCKSIZE, data
+    Next
+    Close #fileNo
+
+    fileNo = FreeFile
+    Dim oSHA256 As CSHA256: Set oSHA256 = New CSHA256
+    Open Filename For Binary Access Read As #fileNo
+    For block_idx = 0 To NUMBLOCKS - 1
+        Get #fileNo, 1 + block_idx * BLOCKSIZE, data
+        oSHA256.UpdateBytesArray data
+    Next
+    Close #fileNo
+
+    Assert.AreEqual "8C5BD270CF77BEBF60002F8FE74F400F0123688B60F86D4BAA55CD182000F468", oSHA256.Digest
+    If fso.FileExists(Filename) Then fso.DeleteFile (Filename)
+
+End Sub
