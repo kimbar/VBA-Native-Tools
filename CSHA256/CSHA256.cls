@@ -162,6 +162,9 @@ Public Sub Finish()
 End Sub
 
 Private Sub ChurnTheChunk()
+
+    If IsFinished Then GoTo skip
+
     Dim idx As Long
     Dim sigma0 As Long
     Dim sigma1 As Long
@@ -219,6 +222,7 @@ Private Sub ChurnTheChunk()
     hash(7) = UnsigSum(hash(7), h)
     ' We clear the buffer (chunk) (at least the original data part) right away beacause this simplifies reasoning
     ' in al of the `Update*` subs.
+skip:
     For idx = 0 To 15
         w(idx) = 0&
     Next
