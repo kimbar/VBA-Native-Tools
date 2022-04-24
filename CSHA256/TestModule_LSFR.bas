@@ -26,7 +26,7 @@ Private Sub ModuleCleanup()
     ChDir CurrentDirectory
 End Sub
 
-Private Sub LSFR_16Bits(ByRef x As Long, ByVal times As Long)
+Public Sub LSFR_16Bits(ByRef x As Long, ByVal times As Long)
     Dim idx As Long
     For idx = 1 To times
         x = (x \ 2) Or ((((x And &H1) <> 0&) Xor ((x And &H4) <> 0&) Xor ((x And &H8) <> 0&) Xor ((x And &H20) <> 0&)) And &H8000&)
@@ -69,6 +69,7 @@ Public Sub Random1056Bytes()
 End Sub
 
 '@TestMethod "Level 80"
+'@IgnoreTest
 Public Sub RandomFile2MB()
     Const BLOCKSIZE As Long = 2048
     Const NUMBLOCKS As Long = 1024
