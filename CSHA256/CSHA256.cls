@@ -246,7 +246,7 @@ End Function
 ' Unsigned arithmetic simulation
 ' ------------------------------
 
-Private Function RRot(ByVal x As Long, ByVal times As Byte) As Long
+Friend Function RRot(ByVal x As Long, ByVal times As Byte) As Long
     times = times And 31
     If times = 0 Then
         RRot = x
@@ -272,7 +272,7 @@ Private Function RShift(ByVal x As Long, ByVal times As Byte) As Long
     RShift = (x And &H7FFFFFFF) \ pow2(times) + ((x < 0&) And pow2(31 - times))
 End Function
 
-Private Function UnsigSum(ByVal x As Long, ByVal y As Long) As Long
+Friend Function UnsigSum(ByVal x As Long, ByVal y As Long) As Long
     Dim topmost_bits As Long
     If x And &H80000000 Then topmost_bits = topmost_bits + 2&
     If x And &H40000000 Then topmost_bits = topmost_bits + 1&

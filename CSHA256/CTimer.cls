@@ -11,7 +11,7 @@ Attribute VB_Exposed = False
 '
 ' author: Mike Woodhouse
 ' source: <https://stackoverflow.com/a/198702>
-' 
+'
 Option Explicit
 
 Private Type LARGE_INTEGER
