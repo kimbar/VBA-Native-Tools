@@ -166,7 +166,7 @@ Public Sub Finish()
     IsFinished = True
 End Sub
 
-Private Sub ChurnTheChunk()
+Friend Sub ChurnTheChunk()
 
     If IsFinished Then GoTo skip
 

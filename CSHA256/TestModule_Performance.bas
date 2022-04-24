@@ -45,7 +45,7 @@ Public Sub Timing1MBInMemory()
 
     time_elapsed = timer.TimeElapsed
 
-    Assert.Inconclusive CStr(BLOCKSIZE / 1024# / 1024# / time_elapsed) & " MB/s"
+    Assert.Inconclusive RoundSigFig(BLOCKSIZE / 1024# / 1024# / time_elapsed) & " MB/s"
 
 End Sub
 
@@ -102,7 +102,7 @@ Public Sub TimingRRot()
         performance = Int(1# / (time_elapsed - baseline_time_elapsed) * REPETITION)
         performance_sample.Add performance
     Next
-    Assert.Inconclusive GetMedian(performance_sample) / 1000000 & " Mc/s"
+    Assert.Inconclusive RoundSigFig(GetMedian(performance_sample) / 1000000) & " Mc/s"
 End Sub
 
 '@TestMethod "Performance"
@@ -135,5 +135,53 @@ Public Sub TimingSum()
         performance = Int(1# / (time_elapsed - baseline_time_elapsed) * REPETITION)
         performance_sample.Add performance
     Next
-    Assert.Inconclusive GetMedian(performance_sample) / 1000000 & " Mc/s"
+    Assert.Inconclusive RoundSigFig(GetMedian(performance_sample) / 1000000) & " Mc/s"
 End Sub
+
+'@TestMethod "Performance"
+Public Sub TimingChurn()
+    Const SAMPLESIZE As Long = 11
+    Const REPETITION As Long = 1000
+    Dim performance_sample As New Collection
+    Dim oSHA256 As CSHA256: Set oSHA256 = New CSHA256
+    Dim idx As Long
+    Dim idx_sample As Long
+    Dim time_elapsed As Double
+    Dim baseline_time_elapsed As Double
+    Dim timer As New CTimer
+    Dim performance As Double
+
+    For idx_sample = 1 To SAMPLESIZE
+
+        timer.StartCounter
+        For idx = 1 To REPETITION
+            ' NOP
+        Next
+        baseline_time_elapsed = timer.TimeElapsed
+
+        timer.StartCounter
+        For idx = 1 To REPETITION
+            oSHA256.ChurnTheChunk
+        Next
+        time_elapsed = timer.TimeElapsed
+
+        performance = Int(1# / (time_elapsed - baseline_time_elapsed) * REPETITION)
+        performance_sample.Add performance
+    Next
+    Assert.Inconclusive RoundSigFig(GetMedian(performance_sample) / 1000) & " Kc/s"
+End Sub
+
+Public Function RoundSigFig(ByVal val As Double, Optional sf As Long = 3) As String
+    Dim l10 As Double
+    Dim neg As Double: neg = 1#
+    If val = 0 Then
+        RoundSigFig = "0"
+        Exit Function
+    ElseIf val < 0 Then
+        val = -val
+        neg = -1#
+    End If
+    l10 = (10 ^ Int(Log(val) / 2.30258509299405))
+    RoundSigFig = CStr(CDbl(Left$(CStr(val / l10), sf + 1)) * l10 * neg)
+End Function
+
