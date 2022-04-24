@@ -9,9 +9,9 @@ Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 '@Folder "Tests"
 '
-' source:
-' <https://stackoverflow.com/questions/198409/how-do-you-test-running-time-of-vba-code>
-'
+' author: Mike Woodhouse
+' source: <https://stackoverflow.com/a/198702>
+' 
 Option Explicit
 
 Private Type LARGE_INTEGER
