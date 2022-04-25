@@ -31,12 +31,14 @@ Private IsFinished As Boolean
 
 ' Consts
 Private two_topmost_bits_values As Variant
+Private three_topmost_bits_values As Variant
 Private pow2 As Variant
 Private sha_k As Variant
 
 Private Sub Class_Initialize()
     ' constants needed to simulate unsigned arithmetic
-    two_topmost_bits_values = Array(0, &H40000000, &H80000000, &HC0000000)
+    two_topmost_bits_values = Array(0&, &H40000000, &H80000000, &HC0000000)
+    three_topmost_bits_values = Array(0&, &H20000000, &H40000000, &H60000000, &H80000000, &HA0000000, &HC0000000, &HE0000000)
     pow2 = Array(1&, 2&, 4&, 8&, 16&, 32&, 64&, 128&, 256&, 512&, 1024&, 2048&, 4096&, _
         8192&, 16384&, 32768, 65536, 131072, 262144, 524288, 1048576, 2097152, 4194304, _
         8388608, 16777216, 33554432, 67108864, 134217728, 268435456, 536870912, 1073741824, &H80000000)
@@ -171,8 +173,6 @@ Friend Sub ChurnTheChunk()
     If IsFinished Then GoTo skip
 
     Dim idx As Long
-    Dim sigma0 As Long
-    Dim sigma1 As Long
     Dim a As Long
     Dim b As Long
     Dim c As Long
@@ -181,10 +181,8 @@ Friend Sub ChurnTheChunk()
     Dim f As Long
     Dim g As Long
     Dim h As Long
-    Dim ch_ As Long
     Dim t1_ As Long
     Dim t2_ As Long
-    Dim maj_ As Long
 
     a = hash(0)
     b = hash(1)
@@ -196,17 +194,9 @@ Friend Sub ChurnTheChunk()
     h = hash(7)
     ' Here be dragons
     For idx = 0 To 63
-        If idx > 15 Then
-            sigma0 = Sigma0Expand(w(idx - 15))
-            sigma1 = Sigma1Expand(w(idx - 2))
-            w(idx) = UnsigSum(w(idx - 16), UnsigSum(sigma0, UnsigSum(w(idx - 7), sigma1)))
-        End If
-        sigma1 = Sigma1Normal(e)
-        ch_ = (e And f) Xor ((Not e) And g)
-        t1_ = UnsigSum(h, UnsigSum(sigma1, UnsigSum(ch_, UnsigSum(sha_k(idx), w(idx)))))
-        sigma0 = Sigma0Normal(a)
-        maj_ = (a And b) Xor (a And c) Xor (b And c)
-        t2_ = UnsigSum(sigma0, maj_)
+        If idx > 15 Then w(idx) = UnsigSum4(w(idx - 16), Sigma0Expand(w(idx - 15)), w(idx - 7), Sigma1Expand(w(idx - 2)))
+        t1_ = UnsigSum(UnsigSum4(h, Sigma1Normal(e), (e And f) Xor ((Not e) And g), sha_k(idx)), w(idx))
+        t2_ = UnsigSum(Sigma0Normal(a), (a And b) Xor (a And c) Xor (b And c))
         h = g
         g = f
         f = e
@@ -286,6 +276,27 @@ Friend Function UnsigSum(ByVal x As Long, ByVal y As Long) As Long
         UnsigSum = UnsigSum And &H3FFFFFFF
     End If
     UnsigSum = UnsigSum Or two_topmost_bits_values(topmost_bits And 3&)
+End Function
+
+Friend Function UnsigSum4(ByVal a As Long, ByVal b As Long, ByVal c As Long, ByVal d As Long) As Long
+    Dim topmost_bits As Long
+    If a And &H80000000 Then topmost_bits = topmost_bits + 4&
+    If a And &H40000000 Then topmost_bits = topmost_bits + 2&
+    If a And &H20000000 Then topmost_bits = topmost_bits + 1&
+    If b And &H80000000 Then topmost_bits = topmost_bits + 4&
+    If b And &H40000000 Then topmost_bits = topmost_bits + 2&
+    If b And &H20000000 Then topmost_bits = topmost_bits + 1&
+    If c And &H80000000 Then topmost_bits = topmost_bits + 4&
+    If c And &H40000000 Then topmost_bits = topmost_bits + 2&
+    If c And &H20000000 Then topmost_bits = topmost_bits + 1&
+    If d And &H80000000 Then topmost_bits = topmost_bits + 4&
+    If d And &H40000000 Then topmost_bits = topmost_bits + 2&
+    If d And &H20000000 Then topmost_bits = topmost_bits + 1&
+    UnsigSum4 = (a And &H1FFFFFFF) + (b And &H1FFFFFFF) + (c And &H1FFFFFFF) + (d And &H1FFFFFFF)
+    If UnsigSum4 And &H40000000 Then topmost_bits = topmost_bits + 2&
+    If UnsigSum4 And &H20000000 Then topmost_bits = topmost_bits + 1&
+    UnsigSum4 = UnsigSum4 And &H1FFFFFFF
+    UnsigSum4 = UnsigSum4 Or three_topmost_bits_values(topmost_bits And 7&)
 End Function
 
 Private Function UnsigSumWithCarry(ByVal x As Long, ByVal y As Long, ByVal z As Boolean, ByRef c As Boolean) As Long
