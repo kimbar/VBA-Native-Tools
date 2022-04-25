@@ -197,7 +197,7 @@ Friend Sub ChurnTheChunk()
     ' Here be dragons
     For idx = 0 To 63
         If idx > 15 Then
-            sigma0 = (RRot(w(idx - 15), 7)) Xor (RRot(w(idx - 15), 18)) Xor (RShift(w(idx - 15), 3))
+            sigma0 = Sigma0Expand(w(idx - 15))
             sigma1 = (RRot(w(idx - 2), 17)) Xor (RRot(w(idx - 2), 19)) Xor (RShift(w(idx - 2), 10))
             w(idx) = UnsigSum(w(idx - 16), UnsigSum(sigma0, UnsigSum(w(idx - 7), sigma1)))
         End If
@@ -263,7 +263,7 @@ Friend Function RRot(ByVal x As Long, ByVal times As Byte) As Long
     If bit_to_be_31 Then RRot = RRot Or &H80000000
 End Function
 
-Private Function RShift(ByVal x As Long, ByVal times As Byte) As Long
+Friend Function RShift(ByVal x As Long, ByVal times As Byte) As Long
     times = times And 31
     If times = 0 Then
         RShift = x
@@ -328,5 +328,42 @@ Private Function FourBytesToLong(ByVal hhbyte As Byte, ByVal lhbyte As Byte, ByV
     Else
         FourBytesToLong = hhbyte * pow2(24) Or lower
     End If
+End Function
+
+Friend Function Sigma0Expand(ByVal x As Long) As Long
+    Dim r As Long
+    If x And &H1& Then r = r Xor &H2004000
+    If x And &H2& Then r = r Xor &H4008000
+    If x And &H4& Then r = r Xor &H8010000
+    If x And &H8& Then r = r Xor &H10020001
+    If x And &H10& Then r = r Xor &H20040002
+    If x And &H20& Then r = r Xor &H40080004
+    If x And &H40& Then r = r Xor &H80100008
+    If x And &H80& Then r = r Xor &H200011
+    If x And &H100& Then r = r Xor &H400022
+    If x And &H200& Then r = r Xor &H800044
+    If x And &H400& Then r = r Xor &H1000088
+    If x And &H800& Then r = r Xor &H2000110
+    If x And &H1000& Then r = r Xor &H4000220
+    If x And &H2000& Then r = r Xor &H8000440
+    If x And &H4000& Then r = r Xor &H10000880
+    If x And &H8000& Then r = r Xor &H20001100
+    If x And &H10000 Then r = r Xor &H40002200
+    If x And &H20000 Then r = r Xor &H80004400
+    If x And &H40000 Then r = r Xor &H8801&
+    If x And &H80000 Then r = r Xor &H11002
+    If x And &H100000 Then r = r Xor &H22004
+    If x And &H200000 Then r = r Xor &H44008
+    If x And &H400000 Then r = r Xor &H88010
+    If x And &H800000 Then r = r Xor &H110020
+    If x And &H1000000 Then r = r Xor &H220040
+    If x And &H2000000 Then r = r Xor &H440080
+    If x And &H4000000 Then r = r Xor &H880100
+    If x And &H8000000 Then r = r Xor &H1100200
+    If x And &H10000000 Then r = r Xor &H2200400
+    If x And &H20000000 Then r = r Xor &H4400800
+    If x And &H40000000 Then r = r Xor &H8801000
+    If x And &H80000000 Then r = r Xor &H11002000
+    Sigma0Expand = r
 End Function
 
