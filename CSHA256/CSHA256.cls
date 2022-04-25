@@ -198,13 +198,13 @@ Friend Sub ChurnTheChunk()
     For idx = 0 To 63
         If idx > 15 Then
             sigma0 = Sigma0Expand(w(idx - 15))
-            sigma1 = (RRot(w(idx - 2), 17)) Xor (RRot(w(idx - 2), 19)) Xor (RShift(w(idx - 2), 10))
+            sigma1 = Sigma1Expand(w(idx - 2))
             w(idx) = UnsigSum(w(idx - 16), UnsigSum(sigma0, UnsigSum(w(idx - 7), sigma1)))
         End If
-        sigma1 = (RRot(e, 6)) Xor (RRot(e, 11)) Xor (RRot(e, 25))
+        sigma1 = Sigma1Normal(e)
         ch_ = (e And f) Xor ((Not e) And g)
         t1_ = UnsigSum(h, UnsigSum(sigma1, UnsigSum(ch_, UnsigSum(sha_k(idx), w(idx)))))
-        sigma0 = (RRot(a, 2)) Xor (RRot(a, 13)) Xor (RRot(a, 22))
+        sigma0 = Sigma0Normal(a)
         maj_ = (a And b) Xor (a And c) Xor (b And c)
         t2_ = UnsigSum(sigma0, maj_)
         h = g
@@ -365,5 +365,116 @@ Friend Function Sigma0Expand(ByVal x As Long) As Long
     If x And &H40000000 Then r = r Xor &H8801000
     If x And &H80000000 Then r = r Xor &H11002000
     Sigma0Expand = r
+End Function
+
+Friend Function Sigma1Expand(ByVal x As Long) As Long
+    Dim r As Long
+    If x And &H1& Then r = r Xor &HA000&
+    If x And &H2& Then r = r Xor &H14000
+    If x And &H4& Then r = r Xor &H28000
+    If x And &H8& Then r = r Xor &H50000
+    If x And &H10& Then r = r Xor &HA0000
+    If x And &H20& Then r = r Xor &H140000
+    If x And &H40& Then r = r Xor &H280000
+    If x And &H80& Then r = r Xor &H500000
+    If x And &H100& Then r = r Xor &HA00000
+    If x And &H200& Then r = r Xor &H1400000
+    If x And &H400& Then r = r Xor &H2800001
+    If x And &H800& Then r = r Xor &H5000002
+    If x And &H1000& Then r = r Xor &HA000004
+    If x And &H2000& Then r = r Xor &H14000008
+    If x And &H4000& Then r = r Xor &H28000010
+    If x And &H8000& Then r = r Xor &H50000020
+    If x And &H10000 Then r = r Xor &HA0000040
+    If x And &H20000 Then r = r Xor &H40000081
+    If x And &H40000 Then r = r Xor &H80000102
+    If x And &H80000 Then r = r Xor &H205&
+    If x And &H100000 Then r = r Xor &H40A&
+    If x And &H200000 Then r = r Xor &H814&
+    If x And &H400000 Then r = r Xor &H1028&
+    If x And &H800000 Then r = r Xor &H2050&
+    If x And &H1000000 Then r = r Xor &H40A0&
+    If x And &H2000000 Then r = r Xor &H8140&
+    If x And &H4000000 Then r = r Xor &H10280
+    If x And &H8000000 Then r = r Xor &H20500
+    If x And &H10000000 Then r = r Xor &H40A00
+    If x And &H20000000 Then r = r Xor &H81400
+    If x And &H40000000 Then r = r Xor &H102800
+    If x And &H80000000 Then r = r Xor &H205000
+    Sigma1Expand = r
+End Function
+
+Friend Function Sigma0Normal(ByVal x As Long) As Long
+    Dim r As Long
+    If x And &H1& Then r = r Xor &H40080400
+    If x And &H2& Then r = r Xor &H80100800
+    If x And &H4& Then r = r Xor &H201001
+    If x And &H8& Then r = r Xor &H402002
+    If x And &H10& Then r = r Xor &H804004
+    If x And &H20& Then r = r Xor &H1008008
+    If x And &H40& Then r = r Xor &H2010010
+    If x And &H80& Then r = r Xor &H4020020
+    If x And &H100& Then r = r Xor &H8040040
+    If x And &H200& Then r = r Xor &H10080080
+    If x And &H400& Then r = r Xor &H20100100
+    If x And &H800& Then r = r Xor &H40200200
+    If x And &H1000& Then r = r Xor &H80400400
+    If x And &H2000& Then r = r Xor &H800801
+    If x And &H4000& Then r = r Xor &H1001002
+    If x And &H8000& Then r = r Xor &H2002004
+    If x And &H10000 Then r = r Xor &H4004008
+    If x And &H20000 Then r = r Xor &H8008010
+    If x And &H40000 Then r = r Xor &H10010020
+    If x And &H80000 Then r = r Xor &H20020040
+    If x And &H100000 Then r = r Xor &H40040080
+    If x And &H200000 Then r = r Xor &H80080100
+    If x And &H400000 Then r = r Xor &H100201
+    If x And &H800000 Then r = r Xor &H200402
+    If x And &H1000000 Then r = r Xor &H400804
+    If x And &H2000000 Then r = r Xor &H801008
+    If x And &H4000000 Then r = r Xor &H1002010
+    If x And &H8000000 Then r = r Xor &H2004020
+    If x And &H10000000 Then r = r Xor &H4008040
+    If x And &H20000000 Then r = r Xor &H8010080
+    If x And &H40000000 Then r = r Xor &H10020100
+    If x And &H80000000 Then r = r Xor &H20040200
+    Sigma0Normal = r
+End Function
+
+Friend Function Sigma1Normal(ByVal x As Long) As Long
+    Dim r As Long
+    If x And &H1& Then r = r Xor &H4200080
+    If x And &H2& Then r = r Xor &H8400100
+    If x And &H4& Then r = r Xor &H10800200
+    If x And &H8& Then r = r Xor &H21000400
+    If x And &H10& Then r = r Xor &H42000800
+    If x And &H20& Then r = r Xor &H84001000
+    If x And &H40& Then r = r Xor &H8002001
+    If x And &H80& Then r = r Xor &H10004002
+    If x And &H100& Then r = r Xor &H20008004
+    If x And &H200& Then r = r Xor &H40010008
+    If x And &H400& Then r = r Xor &H80020010
+    If x And &H800& Then r = r Xor &H40021
+    If x And &H1000& Then r = r Xor &H80042
+    If x And &H2000& Then r = r Xor &H100084
+    If x And &H4000& Then r = r Xor &H200108
+    If x And &H8000& Then r = r Xor &H400210
+    If x And &H10000 Then r = r Xor &H800420
+    If x And &H20000 Then r = r Xor &H1000840
+    If x And &H40000 Then r = r Xor &H2001080
+    If x And &H80000 Then r = r Xor &H4002100
+    If x And &H100000 Then r = r Xor &H8004200
+    If x And &H200000 Then r = r Xor &H10008400
+    If x And &H400000 Then r = r Xor &H20010800
+    If x And &H800000 Then r = r Xor &H40021000
+    If x And &H1000000 Then r = r Xor &H80042000
+    If x And &H2000000 Then r = r Xor &H84001
+    If x And &H4000000 Then r = r Xor &H108002
+    If x And &H8000000 Then r = r Xor &H210004
+    If x And &H10000000 Then r = r Xor &H420008
+    If x And &H20000000 Then r = r Xor &H840010
+    If x And &H40000000 Then r = r Xor &H1080020
+    If x And &H80000000 Then r = r Xor &H2100040
+    Sigma1Normal = r
 End Function
 
