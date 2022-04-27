@@ -65,7 +65,7 @@ Public Sub Random1056Bytes()
         LSFR_16Bits x, 8
         oSHA256.UpdateByte x And &HFF
     Next
-    Assert.AreEqual "379224785FE5754328B7719CD68F6BCEBFD29232FE1B08A46D5EC1685D4586D1", oSHA256.Digest
+    Assert.AreEqual "379224785FE5754328B7719CD68F6BCEBFD29232FE1B08A46D5EC1685D4586D1", oSHA256.DigestAsHexString
 End Sub
 
 '@TestMethod "Level 80"
@@ -109,7 +109,7 @@ Public Sub RandomFile2MB()
     Next
     Close #fileNo
 
-    Assert.AreEqual "8C5BD270CF77BEBF60002F8FE74F400F0123688B60F86D4BAA55CD182000F468", oSHA256.Digest
+    Assert.AreEqual "8C5BD270CF77BEBF60002F8FE74F400F0123688B60F86D4BAA55CD182000F468", oSHA256.DigestAsHexString
     If fso.FileExists(Filename) Then fso.DeleteFile (Filename)
 
 End Sub

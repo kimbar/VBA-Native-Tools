@@ -42,7 +42,7 @@ until `Reset`.
 
 ---
 
-### `Public Function Digest() As String`
+### `Public Function DigestAsHexString() As String`
 
 The hashing is implicitly finalized if necessary (see: `Finish`) and the hash is returned. Updating of the data is
 still possible after this point, but hash won't be changed until `Reset`.

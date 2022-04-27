@@ -23,9 +23,11 @@ Attribute VB_Exposed = False
 Option Explicit
 
 Private hash(0 To 7) As Long
+' buffer
 Private w(0 To 63) As Long
 Private total_bits_consumed_ll As Long
 Private total_bits_consumed_hl As Long
+' how many bytes in the buffer are really the data from the stream
 Private current_chunk_bytes_taken As Byte
 Private IsFinished As Boolean
 
@@ -33,6 +35,10 @@ Private IsFinished As Boolean
 Private two_topmost_bits_values(0 To 3) As Long
 Private three_topmost_bits_values(0 To 7) As Long
 Private sha_k(0 To 63) As Long
+
+
+' Public API - general management
+' -------------------------------
 
 Private Sub Class_Initialize()
     ' constants needed to simulate unsigned arithmetic
@@ -60,6 +66,12 @@ Private Sub Class_Terminate()
 End Sub
 
 Public Sub Reset()
+    ' Reset the state of the object.
+    '
+    ' The hashing object can be reused to calculate another hash. The state of the `CSHA24` class object after this
+    ' method is identical to the initial state after creation.
+    '
+
     Dim idx As Long
     For idx = 0 To 63
         w(idx) = 0&
@@ -75,16 +87,56 @@ Public Sub Reset()
     IsFinished = False
 End Sub
 
+Public Sub Finish()
+    ' Explicitly finish the hashing.
+    '
+    ' The hash is being calculated at this point and can be read through the `Digest*` methods. Sensitive internal data
+    ' are cleared. Updating of the data is still allowed after this point, but hash won't be changed until `Reset`.
+    '
+
+    ' Setting up the `1` bit just behind the data, as specification states
+    w(current_chunk_bytes_taken \ 4) = w(current_chunk_bytes_taken \ 4) Or ByteToLong(&H80, current_chunk_bytes_taken Mod 4)
+    ' The specification claims 65 bits for padding. Since we're operating at a byte level that is 9 bytes
+    ' If in the current chunk we used 55 or less bytes then we can fit the padding in the current chunk
+    ' If not we need to churn the chunk (with the `1` bit behind the data - that's required always) and produce
+    ' another chunk just for the length field in padding
+    If current_chunk_bytes_taken > 55 Then ChurnTheChunk
+    ' Padding with length field
+    w(14) = total_bits_consumed_hl
+    w(15) = total_bits_consumed_ll
+    ChurnTheChunk    ' In any case we need to churn the last chunk
+    Dim idx As Long
+    ' Clearing the chunk just to be extra safe
+    For idx = 16 To 63
+        w(idx) = 0&
+    Next
+    IsFinished = True    ' This stops any further "churning"
+End Sub
+
+' Public API - data upload
+' ------------------------
+
 Public Sub UpdateLong(ByVal data As Long)
+    ' Append the buffer of the data being processed with a single 32-bit value.
+    '
+    ' The `data` is treated as an unsigned value, that is literal value of `-1` is read as `&HFFFFFFFF` (32 binary
+    ' ones). Hexadecimal values from strings can be appended with `.UpdateLong(CLng("&H12345678"))
+    '
+
     If (current_chunk_bytes_taken And 3) = 0 Then
         UpdateLongAligned data
     Else
-        Err.Raise 1000, "Not implemented"
+        Err.Raise 1000, "Not implemented"    ' TODO: implement this
     End If
 End Sub
 
 Public Sub UpdateByte(ByVal data As Byte)
-    ' The byte is "ored" to the buffer (chunk) after being l-shifted into position in Long
+    ' Append the buffer of the data being processed with a single 8-bit value.
+    '
+    ' That's it. That's the method.
+    '
+
+    ' The byte is "Or-ed" to the buffer (chunk) after being l-shifted into position in Long
     w(current_chunk_bytes_taken \ 4) = w(current_chunk_bytes_taken \ 4) Or ByteToLong(data, current_chunk_bytes_taken And 3)
     current_chunk_bytes_taken = current_chunk_bytes_taken + 1
     IncrementTotalLength bits:=8
@@ -95,15 +147,12 @@ Public Sub UpdateByte(ByVal data As Byte)
     End If
 End Sub
 
-Private Sub UpdateBytesArrayNaive(ByRef data() As Byte, ByVal lb As Long, ByVal ub As Long)
-    ' Naive implementation, only to be used for unaligned ends of arrays
-    Dim idx As Long
-    For idx = lb To ub
-        UpdateByte data(idx)
-    Next
-End Sub
-
 Public Sub UpdateBytesArray(ByRef data() As Byte)
+    ' Append the buffer of the data being processed with an array of 8-bit values.
+    '
+    ' This is the preffered way of uploading the data to the object.
+    '
+
     Dim start_run As Byte
     Dim cursor As Long: cursor = LBound(data)
     Dim ub As Long: ub = UBound(data)
@@ -127,7 +176,64 @@ Public Sub UpdateBytesArray(ByRef data() As Byte)
     UpdateBytesArrayNaive data, cursor, ub
 End Sub
 
+Public Sub UpdateStringUTF16LE(ByRef data As String)
+    ' Append the buffer of the data being processed with a VBA encoded `String`
+    '
+    ' By "VBA encoded" we mean UTF-16LE which is the internal encoding in Windows. The method is purposefully named with
+    ' the cumbersome suffix to warn the user that the calculated hash can be (usually but not always!) compared to
+    ' other, similar textual data only if the latter is also encoded with UTF-16LE (which is unlikely, unless it is also
+    ' a VBA `String`)
+
+End Sub
+
+Public Sub UpdateStringPureASCII(ByRef data As String, ByVal errnum As Integer, Optional ByRef cursor As Long)
+    ' Append the buffer of the data being processed with a string **strictly** restriced to 00-7F codepoints
+    '
+    ' At any char in the range 80-FFFF an error with number `errnum` is raised. The `cursor` variable can be
+    ' used to find the culprit. The hashing can be resumed after this.
+
+End Sub
+
+' Public API - data download
+' --------------------------
+
+Public Function DigestAsHexString() As String
+    ' Return the data hash as a hexadecimal string
+    '
+    ' The hashing is implicitly finalized if necessary (see: `Finish`) and the hash is returned as an uppercase
+    ' hexadecimal 256-bit (64-digit) value. Updating of the data is still allowed after this point, but hash won't be
+    ' changed until `Reset`.
+
+    If Not IsFinished Then Me.Finish
+    Dim i As Long
+    Dim h As String
+    For i = 0 To 7
+        h = Hex$(hash(i))
+        DigestAsHexString = DigestAsHexString & Left$("00000000", 8 - Len(h)) & h
+    Next
+End Function
+
+Public Sub DigestIntoArray(ByRef arr As Variant, ByVal start_idx As Long)
+    ' Store the data in an Array starting from element `start_idx`
+    '
+    ' The array must be strongly typed with `Byte`, `Integer` or `Long`. 32 bytes, 16 integers or 8 longs are filled in
+    ' the array sarting from `start_idx`. If the array is not long enough an error 9 is raised.
+End Sub
+
+' Implementation - public API helpers
+' -----------------------------------
+
+Private Sub UpdateBytesArrayNaive(ByRef data() As Byte, ByVal lb As Long, ByVal ub As Long)
+    ' Copy bytes into the buffer
+    ' Naive implementation, only to be used for unaligned ends of arrays
+    Dim idx As Long
+    For idx = lb To ub
+        UpdateByte data(idx)
+    Next
+End Sub
+
 Private Sub UpdateLongAligned(ByVal data As Long)
+    ' Copy single Long into the buffer
     ' Fast implementation - only assignment of a single variable to the buffer (chunk)
     w(current_chunk_bytes_taken \ 4) = data
     current_chunk_bytes_taken = current_chunk_bytes_taken + 4
@@ -140,35 +246,61 @@ Private Sub UpdateLongAligned(ByVal data As Long)
 End Sub
 
 Private Sub IncrementTotalLength(ByVal bits As Long, Optional ByVal len_4Gbits As Long = 0&)
+    ' Update the length of uploaded data - for the purpose of padding
     Dim c As Boolean
     total_bits_consumed_ll = UnsigSumWithCarry(total_bits_consumed_ll, bits, c, c)
     ' This line is only ever used with data larger than 2GB
     If c Or len_4Gbits Then total_bits_consumed_hl = UnsigSumWithCarry(total_bits_consumed_hl, len_4Gbits, c, c)
 End Sub
 
-Public Sub Finish()
-    ' Setting up the `1` bit just behind the data, as specification states
-    w(current_chunk_bytes_taken \ 4) = w(current_chunk_bytes_taken \ 4) Or ByteToLong(&H80, current_chunk_bytes_taken Mod 4)
-    ' The specification claims 65 bits for padding. Since we're operating at a byte level that is 9 bytes
-    ' If in curren chunk we used 55 or less bytes then we can fit the padding in the current chunk
-    ' If not we need to churn the chunk (with the `1` bit behind the data - that's required always) and produce
-    ' anoyher chunk just for the length field in padding
-    If current_chunk_bytes_taken > 55 Then ChurnTheChunk
-    w(14) = total_bits_consumed_hl
-    w(15) = total_bits_consumed_ll
-    ' In any case we need to churn the last chunk
-    ChurnTheChunk
+Private Function ByteToLong(ByVal x As Byte, ByVal byte_idx_bigendian As Byte) As Long
+    ' Move (leftshift) a byte into one of four bytes in the Long
+    ' The bytes are numbered big-endian style (as everything in the SHA-2 is)
+    Select Case byte_idx_bigendian
+        Case 3: ByteToLong = x
+        Case 2: ByteToLong = x * &H100&
+        Case 1: ByteToLong = x * &H10000
+        Case 0:
+            If (x And &H80) Then
+                ' sign bit strikes again
+                ByteToLong = ((x And &H7F) * &H1000000) Or &H80000000
+            Else
+                ByteToLong = x * &H1000000
+            End If
+    End Select
+End Function
+
+Private Function FourBytesToLong(ByVal hhbyte As Byte, ByVal lhbyte As Byte, ByVal hlbyte As Byte, ByVal llbyte As Byte) As Long
+    ' Convert four bytes into a single Long
+    ' The bytes are given to the function in big-endian sequence
+    Dim lower As Long
+    lower = (lhbyte * &H10000) Or (hlbyte * &H100&) Or llbyte
+    If (hhbyte And &H80) Then
+        FourBytesToLong = ((hhbyte And &H7F) * &H1000000) Or &H80000000 Or lower
+    Else
+        FourBytesToLong = hhbyte * &H1000000 Or lower
+    End If
+End Function
+
+Private Sub PopulateLongArrayFromString(ByRef arr() As Long, ByRef data As String)
+    ' Populate Long Array From String
+    ' Strong typing of the constants arrays proven to be faster. Since we need to populate the arrays with many values,
+    ' but we need to do it once per object creation, this subroutine allows to keep these values in more manageable form
+    ' - in a string. Each value occupies 8 chars, and values are separated with one char (typically: a space)
     Dim idx As Long
-    ' Clearing the chunk just to be extra safe
-    For idx = 16 To 63
-        w(idx) = 0&
+    Dim cursor As Long: cursor = 1
+    For idx = LBound(arr) To UBound(arr)
+        arr(idx) = CLng("&H" & Mid$(data, cursor, 8))
+        cursor = cursor + 9    ' 8 chars for the value and 1 char for the separator
     Next
-    IsFinished = True
 End Sub
+
+' Main logic
+' ----------
 
 Friend Sub ChurnTheChunk()
 
-    If IsFinished Then GoTo skip
+    If IsFinished Then GoTo skip    ' This prevents updating the hash after `Finish`
 
     Dim idx As Long
     Dim a As Long
@@ -221,20 +353,11 @@ skip:
     Next
 End Sub
 
-Public Function Digest() As String
-    If Not IsFinished Then Me.Finish
-    Dim i As Long
-    Dim h As String
-    For i = 0 To 7
-        h = Hex$(hash(i))
-        Digest = Digest & Left$("00000000", 8 - Len(h)) & h
-    Next
-End Function
-
-' Unsigned arithmetic simulation
-' ------------------------------
+' Implementation - Unsigned arithmetic simulation
+' -----------------------------------------------
 
 Friend Function UnsigSum(ByVal x As Long, ByVal y As Long) As Long
+    ' `x+y` but disregard the sign bit and overflow
     Dim topmost_bits As Long
     If x And &H80000000 Then topmost_bits = topmost_bits + 2&
     If x And &H40000000 Then topmost_bits = topmost_bits + 1&
@@ -249,6 +372,8 @@ Friend Function UnsigSum(ByVal x As Long, ByVal y As Long) As Long
 End Function
 
 Friend Function UnsigSum4(ByVal a As Long, ByVal b As Long, ByVal c As Long, ByVal d As Long) As Long
+    ' `a+b+c+d` but disregard the sign bit and overflow
+    ' This was optimized because this function is one on the bottle-neck
     Dim topmost_bits As Long
     If a And &H80000000 Then topmost_bits = topmost_bits + 4&
     If a And &H40000000 Then topmost_bits = topmost_bits + 2&
@@ -270,6 +395,7 @@ Friend Function UnsigSum4(ByVal a As Long, ByVal b As Long, ByVal c As Long, ByV
 End Function
 
 Private Function UnsigSumWithCarry(ByVal x As Long, ByVal y As Long, ByVal z As Boolean, ByRef c As Boolean) As Long
+    ' `x+y+z` but disregard the sign bit, pass the overflow bit to `c`
     Dim topmost_bits As Long
     If x And &H80000000 Then topmost_bits = topmost_bits + 2&
     If x And &H40000000 Then topmost_bits = topmost_bits + 1&
@@ -287,31 +413,13 @@ Private Function UnsigSumWithCarry(ByVal x As Long, ByVal y As Long, ByVal z As 
     c = topmost_bits \ 4&
 End Function
 
-Private Function ByteToLong(ByVal x As Byte, ByVal byte_idx_bigendian As Byte) As Long
-    Select Case byte_idx_bigendian
-        Case 3: ByteToLong = x
-        Case 2: ByteToLong = x * &H100&
-        Case 1: ByteToLong = x * &H10000
-        Case 0:
-            If (x And &H80) Then
-                ByteToLong = ((x And &H7F) * &H1000000) Or &H80000000
-            Else
-                ByteToLong = x * &H1000000
-            End If
-    End Select
-End Function
-
-Private Function FourBytesToLong(ByVal hhbyte As Byte, ByVal lhbyte As Byte, ByVal hlbyte As Byte, ByVal llbyte As Byte) As Long
-    Dim lower As Long
-    lower = (lhbyte * &H10000) Or (hlbyte * &H100&) Or llbyte
-    If (hhbyte And &H80) Then
-        FourBytesToLong = ((hhbyte And &H7F) * &H1000000) Or &H80000000 Or lower
-    Else
-        FourBytesToLong = hhbyte * &H1000000 Or lower
-    End If
-End Function
 
 Friend Function Sigma0Expand(ByVal x As Long) As Long
+    ' Calculate `(x rightrotate 7) xor (x rightrotate 18) xor (x rightshift 3)`
+    ' This was optimized because this function is one on the bottle-neck
+    ' The calculation is "decomposed" into bit masks for every bit of the input. Since we calculate the output bit-wise
+    ' we can do it literally bit-wise: every line provides for a single bit of the 32-bit input value. This has proven
+    ' to be faster than more concise methods such as integer division.
     Dim r As Long
     If x And &H1& Then r = r Xor &H2004000
     If x And &H2& Then r = r Xor &H4008000
@@ -349,6 +457,8 @@ Friend Function Sigma0Expand(ByVal x As Long) As Long
 End Function
 
 Friend Function Sigma1Expand(ByVal x As Long) As Long
+    ' Calculate `(x rightrotate 17) xor (x rightrotate 19) xor (x rightshift 10)`
+    ' More description in `Sigma0Expand`
     Dim r As Long
     If x And &H1& Then r = r Xor &HA000&
     If x And &H2& Then r = r Xor &H14000
@@ -386,6 +496,8 @@ Friend Function Sigma1Expand(ByVal x As Long) As Long
 End Function
 
 Friend Function Sigma0Normal(ByVal x As Long) As Long
+    ' Calculate `(x rightrotate 2) xor (x rightrotate 13) xor (x rightrotate 22)`
+    ' More description in `Sigma0Expand`
     Dim r As Long
     If x And &H1& Then r = r Xor &H40080400
     If x And &H2& Then r = r Xor &H80100800
@@ -423,6 +535,8 @@ Friend Function Sigma0Normal(ByVal x As Long) As Long
 End Function
 
 Friend Function Sigma1Normal(ByVal x As Long) As Long
+    ' Calculate `(x rightrotate 6) xor (x rightrotate 11) xor (x rightrotate 25)`
+    ' More description in `Sigma0Expand`
     Dim r As Long
     If x And &H1& Then r = r Xor &H4200080
     If x And &H2& Then r = r Xor &H8400100
@@ -458,16 +572,3 @@ Friend Function Sigma1Normal(ByVal x As Long) As Long
     If x And &H80000000 Then r = r Xor &H2100040
     Sigma1Normal = r
 End Function
-
-' Utils
-' ------------------------------
-
-Private Sub PopulateLongArrayFromString(ByRef arr() As Long, ByRef data As String)
-    Dim idx As Long
-    Dim cursor As Long: cursor = 1
-    For idx = LBound(arr) To UBound(arr)
-        arr(idx) = CLng("&H" & Mid$(data, cursor, 8))
-        cursor = cursor + 9
-    Next
-End Sub
-
