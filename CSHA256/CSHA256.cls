@@ -30,29 +30,31 @@ Private current_chunk_bytes_taken As Byte
 Private IsFinished As Boolean
 
 ' Consts
-Private two_topmost_bits_values As Variant
-Private three_topmost_bits_values As Variant
+Private two_topmost_bits_values(0 To 3) As Long
+Private three_topmost_bits_values(0 To 7) As Long
 Private pow2 As Variant
-Private sha_k As Variant
+Private sha_k(0 To 63) As Long
 
 Private Sub Class_Initialize()
     ' constants needed to simulate unsigned arithmetic
-    two_topmost_bits_values = Array(0&, &H40000000, &H80000000, &HC0000000)
-    three_topmost_bits_values = Array(0&, &H20000000, &H40000000, &H60000000, &H80000000, &HA0000000, &HC0000000, &HE0000000)
+    PopulateLongArrayFromString two_topmost_bits_values, _
+        "00000000 40000000 80000000 C0000000"
+    PopulateLongArrayFromString three_topmost_bits_values, _
+        "00000000 20000000 40000000 60000000 80000000 A0000000 C0000000 E0000000"
+    
     pow2 = Array(1&, 2&, 4&, 8&, 16&, 32&, 64&, 128&, 256&, 512&, 1024&, 2048&, 4096&, _
         8192&, 16384&, 32768, 65536, 131072, 262144, 524288, 1048576, 2097152, 4194304, _
         8388608, 16777216, 33554432, 67108864, 134217728, 268435456, 536870912, 1073741824, &H80000000)
     ' SHA-2 256 constants
-    sha_k = Array( _
-        &H428A2F98, &H71374491, &HB5C0FBCF, &HE9B5DBA5, &H3956C25B, &H59F111F1, &H923F82A4, &HAB1C5ED5, _
-        &HD807AA98, &H12835B01, &H243185BE, &H550C7DC3, &H72BE5D74, &H80DEB1FE, &H9BDC06A7, &HC19BF174, _
-        &HE49B69C1, &HEFBE4786, &HFC19DC6, &H240CA1CC, &H2DE92C6F, &H4A7484AA, &H5CB0A9DC, &H76F988DA, _
-        &H983E5152, &HA831C66D, &HB00327C8, &HBF597FC7, &HC6E00BF3, &HD5A79147, &H6CA6351, &H14292967, _
-        &H27B70A85, &H2E1B2138, &H4D2C6DFC, &H53380D13, &H650A7354, &H766A0ABB, &H81C2C92E, &H92722C85, _
-        &HA2BFE8A1, &HA81A664B, &HC24B8B70, &HC76C51A3, &HD192E819, &HD6990624, &HF40E3585, &H106AA070, _
-        &H19A4C116, &H1E376C08, &H2748774C, &H34B0BCB5, &H391C0CB3, &H4ED8AA4A, &H5B9CCA4F, &H682E6FF3, _
-        &H748F82EE, &H78A5636F, &H84C87814, &H8CC70208, &H90BEFFFA, &HA4506CEB, &HBEF9A3F7, &HC67178F2 _
-        )
+    PopulateLongArrayFromString sha_k, _
+        "428A2F98 71374491 B5C0FBCF E9B5DBA5 3956C25B 59F111F1 923F82A4 AB1C5ED5 " & _
+        "D807AA98 12835B01 243185BE 550C7DC3 72BE5D74 80DEB1FE 9BDC06A7 C19BF174 " & _
+        "E49B69C1 EFBE4786 0FC19DC6 240CA1CC 2DE92C6F 4A7484AA 5CB0A9DC 76F988DA " & _
+        "983E5152 A831C66D B00327C8 BF597FC7 C6E00BF3 D5A79147 06CA6351 14292967 " & _
+        "27B70A85 2E1B2138 4D2C6DFC 53380D13 650A7354 766A0ABB 81C2C92E 92722C85 " & _
+        "A2BFE8A1 A81A664B C24B8B70 C76C51A3 D192E819 D6990624 F40E3585 106AA070 " & _
+        "19A4C116 1E376C08 2748774C 34B0BCB5 391C0CB3 4ED8AA4A 5B9CCA4F 682E6FF3 " & _
+        "748F82EE 78A5636F 84C87814 8CC70208 90BEFFFA A4506CEB BEF9A3F7 C67178F2 "
     ' Reseting variables (state)
     Me.Reset
 End Sub
@@ -493,7 +495,7 @@ End Function
 ' Utils
 ' ------------------------------
 
-Private Sub PopulateLongArrayFromString(ByRef arr() As Long, data As String)
+Private Sub PopulateLongArrayFromString(ByRef arr() As Long, ByRef data As String)
     Dim idx As Long
     Dim cursor As Long: cursor = 1
     For idx = LBound(arr) To UBound(arr)
