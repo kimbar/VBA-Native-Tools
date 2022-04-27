@@ -73,39 +73,6 @@ Private Function GetMedian(ByVal sample As Collection) As Variant
 End Function
 
 '@TestMethod "Performance"
-Public Sub TimingRRot()
-    Const SAMPLESIZE As Long = 11
-    Const REPETITION As Long = 100000
-    Dim performance_sample As New Collection
-    Dim oSHA256 As CSHA256: Set oSHA256 = New CSHA256
-    Dim idx As Long
-    Dim idx_sample As Long
-    Dim time_elapsed As Double
-    Dim baseline_time_elapsed As Double
-    Dim timer As New CTimer
-    Dim performance As Double
-
-    For idx_sample = 1 To SAMPLESIZE
-
-        timer.StartCounter
-        For idx = 1 To REPETITION
-            ' NOP
-        Next
-        baseline_time_elapsed = timer.TimeElapsed
-
-        timer.StartCounter
-        For idx = 1 To REPETITION
-            oSHA256.RRot &HFFFFFFFF, 11
-        Next
-        time_elapsed = timer.TimeElapsed
-
-        performance = Int(1# / (time_elapsed - baseline_time_elapsed) * REPETITION)
-        performance_sample.Add performance
-    Next
-    Assert.Inconclusive RoundSigFig(GetMedian(performance_sample) / 1000000) & " Mc/s"
-End Sub
-
-'@TestMethod "Performance"
 Public Sub TimingSum()
     Const SAMPLESIZE As Long = 11
     Const REPETITION As Long = 100000

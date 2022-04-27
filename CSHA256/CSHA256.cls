@@ -32,7 +32,6 @@ Private IsFinished As Boolean
 ' Consts
 Private two_topmost_bits_values(0 To 3) As Long
 Private three_topmost_bits_values(0 To 7) As Long
-Private pow2 As Variant
 Private sha_k(0 To 63) As Long
 
 Private Sub Class_Initialize()
@@ -41,10 +40,6 @@ Private Sub Class_Initialize()
         "00000000 40000000 80000000 C0000000"
     PopulateLongArrayFromString three_topmost_bits_values, _
         "00000000 20000000 40000000 60000000 80000000 A0000000 C0000000 E0000000"
-    
-    pow2 = Array(1&, 2&, 4&, 8&, 16&, 32&, 64&, 128&, 256&, 512&, 1024&, 2048&, 4096&, _
-        8192&, 16384&, 32768, 65536, 131072, 262144, 524288, 1048576, 2097152, 4194304, _
-        8388608, 16777216, 33554432, 67108864, 134217728, 268435456, 536870912, 1073741824, &H80000000)
     ' SHA-2 256 constants
     PopulateLongArrayFromString sha_k, _
         "428A2F98 71374491 B5C0FBCF E9B5DBA5 3956C25B 59F111F1 923F82A4 AB1C5ED5 " & _
@@ -239,32 +234,6 @@ End Function
 ' Unsigned arithmetic simulation
 ' ------------------------------
 
-Friend Function RRot(ByVal x As Long, ByVal times As Byte) As Long
-    times = times And 31
-    If times = 0 Then
-        RRot = x
-        Exit Function
-    End If
-    Dim bit_31_shifted As Long
-    Dim bit_to_be_31 As Long
-    Dim lower_bits As Long
-    bit_31_shifted = (x < 0&) And pow2(31 - times)
-    x = x And &H7FFFFFFF
-    bit_to_be_31 = x And pow2(times - 1)
-    lower_bits = x \ pow2(times)
-    RRot = (x - (lower_bits * pow2(times)) - bit_to_be_31) * pow2(32 - times) + lower_bits + bit_31_shifted
-    If bit_to_be_31 Then RRot = RRot Or &H80000000
-End Function
-
-Friend Function RShift(ByVal x As Long, ByVal times As Byte) As Long
-    times = times And 31
-    If times = 0 Then
-        RShift = x
-        Exit Function
-    End If
-    RShift = (x And &H7FFFFFFF) \ pow2(times) + ((x < 0&) And pow2(31 - times))
-End Function
-
 Friend Function UnsigSum(ByVal x As Long, ByVal y As Long) As Long
     Dim topmost_bits As Long
     If x And &H80000000 Then topmost_bits = topmost_bits + 2&
@@ -323,24 +292,24 @@ End Function
 Private Function ByteToLong(ByVal x As Byte, ByVal byte_idx_bigendian As Byte) As Long
     Select Case byte_idx_bigendian
         Case 3: ByteToLong = x
-        Case 2: ByteToLong = x * pow2(8)
-        Case 1: ByteToLong = x * pow2(16)
+        Case 2: ByteToLong = x * &H100&
+        Case 1: ByteToLong = x * &H10000
         Case 0:
             If (x And &H80) Then
-                ByteToLong = ((x And &H7F) * pow2(24)) Or &H80000000
+                ByteToLong = ((x And &H7F) * &H1000000) Or &H80000000
             Else
-                ByteToLong = x * pow2(24)
+                ByteToLong = x * &H1000000
             End If
     End Select
 End Function
 
 Private Function FourBytesToLong(ByVal hhbyte As Byte, ByVal lhbyte As Byte, ByVal hlbyte As Byte, ByVal llbyte As Byte) As Long
     Dim lower As Long
-    lower = (lhbyte * pow2(16)) Or (hlbyte * pow2(8)) Or llbyte
+    lower = (lhbyte * &H10000) Or (hlbyte * &H100&) Or llbyte
     If (hhbyte And &H80) Then
-        FourBytesToLong = ((hhbyte And &H7F) * pow2(24)) Or &H80000000 Or lower
+        FourBytesToLong = ((hhbyte And &H7F) * &H1000000) Or &H80000000 Or lower
     Else
-        FourBytesToLong = hhbyte * pow2(24) Or lower
+        FourBytesToLong = hhbyte * &H1000000 Or lower
     End If
 End Function
 
