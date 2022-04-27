@@ -22,7 +22,7 @@ Attribute VB_Exposed = False
 
 Option Explicit
 
-Private hash As Variant
+Private hash(0 To 7) As Long
 Private w(0 To 63) As Long
 Private total_bits_consumed_ll As Long
 Private total_bits_consumed_hl As Long
@@ -68,7 +68,8 @@ Public Sub Reset()
         w(idx) = 0&
     Next
     ' Initial hash as stated in the specification
-    hash = Array(&H6A09E667, &HBB67AE85, &H3C6EF372, &HA54FF53A, &H510E527F, &H9B05688C, &H1F83D9AB, &H5BE0CD19)
+    PopulateLongArrayFromString hash, _
+        "6A09E667 BB67AE85 3C6EF372 A54FF53A 510E527F 9B05688C 1F83D9AB 5BE0CD19"
     ' Length of the data (in bits) kept in two Longs (more than 2GB of data is possible this way)
     total_bits_consumed_ll = 0&
     total_bits_consumed_hl = 0&
@@ -488,4 +489,16 @@ Friend Function Sigma1Normal(ByVal x As Long) As Long
     If x And &H80000000 Then r = r Xor &H2100040
     Sigma1Normal = r
 End Function
+
+' Utils
+' ------------------------------
+
+Private Sub PopulateLongArrayFromString(ByRef arr() As Long, data As String)
+    Dim idx As Long
+    Dim cursor As Long: cursor = 1
+    For idx = LBound(arr) To UBound(arr)
+        arr(idx) = CLng("&H" & Mid$(data, cursor, 8))
+        cursor = cursor + 9
+    Next
+End Sub
 
