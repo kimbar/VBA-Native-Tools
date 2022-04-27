@@ -240,9 +240,7 @@ Friend Function UnsigSum(ByVal x As Long, ByVal y As Long) As Long
     If x And &H40000000 Then topmost_bits = topmost_bits + 1&
     If y And &H80000000 Then topmost_bits = topmost_bits + 2&
     If y And &H40000000 Then topmost_bits = topmost_bits + 1&
-    x = x And &H3FFFFFFF
-    y = y And &H3FFFFFFF
-    UnsigSum = x + y
+    UnsigSum = (x And &H3FFFFFFF) + (y And &H3FFFFFFF)
     If UnsigSum And &H40000000 Then
         topmost_bits = topmost_bits + 1&
         UnsigSum = UnsigSum And &H3FFFFFFF
