@@ -19,7 +19,7 @@ returns without some major redesign.
 ## TODO
 
 - `CSHA256.UpdateLong` has nonimplemented handling of unaligned buffer
-- "Unfriending" all private methods (made just for the purpose of testing via RubberDuck)
+- ~~"Unfriending" all private methods (made just for the purpose of testing via RubberDuck)~~
 - ~~Some implementation comments in code for new solutions (after optimization)~~
 - `CSHA256.UpdateStringUTF16LE` for native VBA string
 - Better API docs: examples for public methods, examples for common use cases: a file, a pure ASCII string, a UTF-8 string, guidance on encoding

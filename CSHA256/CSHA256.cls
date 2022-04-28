@@ -298,7 +298,7 @@ End Sub
 ' Main logic
 ' ----------
 
-Friend Sub ChurnTheChunk()
+Private Sub ChurnTheChunk()
 
     If IsFinished Then GoTo skip    ' This prevents updating the hash after `Finish`
 
@@ -356,7 +356,7 @@ End Sub
 ' Implementation - Unsigned arithmetic simulation
 ' -----------------------------------------------
 
-Friend Function UnsigSum(ByVal x As Long, ByVal y As Long) As Long
+Private Function UnsigSum(ByVal x As Long, ByVal y As Long) As Long
     ' `x+y` but disregard the sign bit and overflow
     Dim topmost_bits As Long
     If x And &H80000000 Then topmost_bits = topmost_bits + 2&
@@ -371,7 +371,7 @@ Friend Function UnsigSum(ByVal x As Long, ByVal y As Long) As Long
     UnsigSum = UnsigSum Or two_topmost_bits_values(topmost_bits And 3&)
 End Function
 
-Friend Function UnsigSum4(ByVal a As Long, ByVal b As Long, ByVal c As Long, ByVal d As Long) As Long
+Private Function UnsigSum4(ByVal a As Long, ByVal b As Long, ByVal c As Long, ByVal d As Long) As Long
     ' `a+b+c+d` but disregard the sign bit and overflow
     ' This was optimized because this function is one on the bottle-neck
     Dim topmost_bits As Long
@@ -414,7 +414,7 @@ Private Function UnsigSumWithCarry(ByVal x As Long, ByVal y As Long, ByVal z As 
 End Function
 
 
-Friend Function Sigma0Expand(ByVal x As Long) As Long
+Private Function Sigma0Expand(ByVal x As Long) As Long
     ' Calculate `(x rightrotate 7) xor (x rightrotate 18) xor (x rightshift 3)`
     ' This was optimized because this function is one on the bottle-neck
     ' The calculation is "decomposed" into bit masks for every bit of the input. Since we calculate the output bit-wise
@@ -456,7 +456,7 @@ Friend Function Sigma0Expand(ByVal x As Long) As Long
     Sigma0Expand = r
 End Function
 
-Friend Function Sigma1Expand(ByVal x As Long) As Long
+Private Function Sigma1Expand(ByVal x As Long) As Long
     ' Calculate `(x rightrotate 17) xor (x rightrotate 19) xor (x rightshift 10)`
     ' More description in `Sigma0Expand`
     Dim r As Long
@@ -495,7 +495,7 @@ Friend Function Sigma1Expand(ByVal x As Long) As Long
     Sigma1Expand = r
 End Function
 
-Friend Function Sigma0Normal(ByVal x As Long) As Long
+Private Function Sigma0Normal(ByVal x As Long) As Long
     ' Calculate `(x rightrotate 2) xor (x rightrotate 13) xor (x rightrotate 22)`
     ' More description in `Sigma0Expand`
     Dim r As Long
@@ -534,7 +534,7 @@ Friend Function Sigma0Normal(ByVal x As Long) As Long
     Sigma0Normal = r
 End Function
 
-Friend Function Sigma1Normal(ByVal x As Long) As Long
+Private Function Sigma1Normal(ByVal x As Long) As Long
     ' Calculate `(x rightrotate 6) xor (x rightrotate 11) xor (x rightrotate 25)`
     ' More description in `Sigma0Expand`
     Dim r As Long
