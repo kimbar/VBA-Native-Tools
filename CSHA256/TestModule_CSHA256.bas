@@ -5,6 +5,7 @@ Option Private Module
 
 '@TestModule
 '@Folder("Tests")
+' Requires: Null
 
 Private Assert As Object
 '@Ignore VariableNotUsed

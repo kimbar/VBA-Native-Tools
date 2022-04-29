@@ -4,6 +4,7 @@ Option Private Module
 
 '@TestModule
 '@Folder("Tests")
+' Requires: "TestUtil_CTimer.cls", "TestUtil_General.bas"
 
 Private Assert As Rubberduck.AssertClass
 Private Fakes As Rubberduck.FakesProvider
@@ -22,18 +23,24 @@ Private Sub ModuleCleanup()
     Set Fakes = Nothing
 End Sub
 
+' TESTS
+' =====
+
+' Performance testing - set up to be "inconclusive" and message benchmarking of the algorithm
+
 '@TestMethod "Performance"
-Public Sub Timing1MBInMemory()
-    Const BLOCKSIZE As Long = 1024& * 1024&
+Public Sub TimingInMemory()
+    ' Timing of 256KB of pseudo-random data (should take about 800ms)
+    Const BLOCKSIZE As Long = 256& * 1024&
     Dim data(0 To BLOCKSIZE) As Byte
-    Dim timer As New CTimer
+    Dim timer As New TestUtil_CTimer
     Dim time_elapsed As Double
 
-    Dim lsfr_state As Long: lsfr_state = &H1234
+    Dim lfsr_state As Long: lfsr_state = &H1234
     Dim byte_idx As Long
     For byte_idx = 0 To BLOCKSIZE - 1
-        data(byte_idx) = (lsfr_state And &HFF)
-        TestModule_LSFR.LSFR_16Bits lsfr_state, 8
+        data(byte_idx) = (lfsr_state And &HFF)
+        TestUtil_General.LFSR_16Bits lfsr_state, 8
     Next
 
     Dim oSHA256 As CSHA256: Set oSHA256 = New CSHA256
@@ -49,16 +56,3 @@ Public Sub Timing1MBInMemory()
 
 End Sub
 
-Public Function RoundSigFig(ByVal val As Double, Optional sf As Long = 3) As String
-    Dim l10 As Double
-    Dim neg As Double: neg = 1#
-    If val = 0 Then
-        RoundSigFig = "0"
-        Exit Function
-    ElseIf val < 0 Then
-        val = -val
-        neg = -1#
-    End If
-    l10 = (10 ^ Int(Log(val) / 2.30258509299405))
-    RoundSigFig = CStr(CDbl(Left$(CStr(val / l10), sf + 1)) * l10 * neg)
-End Function

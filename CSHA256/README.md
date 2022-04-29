@@ -4,6 +4,8 @@ SHA-2 256 hashing algorithm class.
 
 ## Basic usage
 
+Copy `CSHA256.cls` file into your project. All `Test(Module|Util)_.*` files are not required, but strongly recommended.
+
 ```VB
 Dim oSHA256 As CSHA256
 Set oSHA256 = New CSHA256

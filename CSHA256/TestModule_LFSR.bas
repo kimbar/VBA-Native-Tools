@@ -1,10 +1,11 @@
-Attribute VB_Name = "TestModule_LSFR"
+Attribute VB_Name = "TestModule_LFSR"
 '@IgnoreModule ProcedureCanBeWrittenAsFunction, HungarianNotation, UseMeaningfulName, VariableNotUsed
 Option Explicit
 Option Private Module
 
 '@TestModule
 '@Folder("Tests")
+' Requires: "TestUtil_General.bas"
 
 Private Assert As Rubberduck.AssertClass
 Private Fakes As Rubberduck.FakesProvider
@@ -26,32 +27,30 @@ Private Sub ModuleCleanup()
     ChDir CurrentDirectory
 End Sub
 
-Public Sub LSFR_16Bits(ByRef x As Long, ByVal times As Long)
-    Dim idx As Long
-    For idx = 1 To times
-        x = (x \ 2) Or ((((x And &H1) <> 0&) Xor ((x And &H4) <> 0&) Xor ((x And &H8) <> 0&) Xor ((x And &H20) <> 0&)) And &H8000&)
-    Next
-End Sub
+' TESTS
+' =====
 
 '@TestMethod "Meta test"
-Public Sub TestTheTestLSFRSingle()
+Public Sub TestTheTestLFSRSingle()
+    ' Testing if LFSR yields expected results
     Dim x As Long
     x = &HACE1&
-    LSFR_16Bits x, 1
+    LFSR_16Bits x, 1
     Assert.AreEqual &H5670&, x
 End Sub
 
 '@TestMethod "Meta test"
-Public Sub TestTheTestLSFRFew()
+Public Sub TestTheTestLFSRFew()
+    ' Testing if LFSR yields expected results
     Dim x As Long
     x = &HACE1&
-    LSFR_16Bits x, 10
+    LFSR_16Bits x, 10
     Assert.AreEqual &HC8AB&, x
-    LSFR_16Bits x, 100
+    LFSR_16Bits x, 100
     Assert.AreEqual &H7E84&, x
-    LSFR_16Bits x, 1000
+    LFSR_16Bits x, 1000
     Assert.AreEqual &HDCA8&, x
-    LSFR_16Bits x, 10000
+    LFSR_16Bits x, 10000
     Assert.AreEqual &H96D8&, x
 End Sub
 
@@ -62,7 +61,7 @@ Public Sub Random1056Bytes()
     Dim x As Long
     x = &HACE1&
     For idx = 1 To 1056
-        LSFR_16Bits x, 8
+        LFSR_16Bits x, 8
         oSHA256.UpdateByte x And &HFF
     Next
     Assert.AreEqual "379224785FE5754328B7719CD68F6BCEBFD29232FE1B08A46D5EC1685D4586D1", oSHA256.DigestAsHexString
@@ -71,6 +70,7 @@ End Sub
 '@TestMethod "Level 80"
 '@IgnoreTest
 Public Sub RandomFile2MB()
+    ' Test ignored by default because of about 6400ms run time.
     Const BLOCKSIZE As Long = 2048
     Const NUMBLOCKS As Long = 1024
     Dim fso As Object
@@ -78,12 +78,12 @@ Public Sub RandomFile2MB()
     Dim block_idx As Long
     Dim data(0 To BLOCKSIZE - 1) As Byte
     Dim Filename As String
-    Dim lsfr_state As Long
+    Dim lfsr_state As Long
     Dim byte_idx As Variant
 
     Set fso = CreateObject("Scripting.FileSystemObject")
 
-    lsfr_state = &HACE1&
+    lfsr_state = &HACE1&
     ChDir Environ("Temp")
 
     Filename = "VBA_CSHA256_testfile_RandomFile2MB.bin"
@@ -93,8 +93,8 @@ Public Sub RandomFile2MB()
     Open Filename For Binary Access Write As #fileNo
     For block_idx = 0 To NUMBLOCKS - 1
         For byte_idx = 0 To BLOCKSIZE - 1
-            data(byte_idx) = (lsfr_state And &HFF)
-            LSFR_16Bits lsfr_state, 8
+            data(byte_idx) = (lfsr_state And &HFF)
+            LFSR_16Bits lfsr_state, 8
         Next
         Put #fileNo, 1 + block_idx * BLOCKSIZE, data
     Next
