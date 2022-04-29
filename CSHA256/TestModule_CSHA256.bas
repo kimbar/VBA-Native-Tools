@@ -146,3 +146,145 @@ Public Sub QuickFoxAsBytesStartUnaligned()
     Assert.AreEqual "D7A8FBB307D7809469CA9ABCB0082E4F8D5651E46D3CDB762D02D0BF37C9E592", oSHA256.DigestAsHexString
 End Sub
 
+'@TestMethod "Level 90"
+Public Sub DigestIntoLongArray()
+    Dim oSHA256 As CSHA256: Set oSHA256 = New CSHA256
+    Dim digest(0 To 7) As Long
+    oSHA256.DigestIntoArray digest, 0
+    Dim expected As Variant
+    expected = Array(&HE3B0C442, &H98FC1C14, &H9AFBF4C8, &H996FB924, &H27AE41E4, &H649B934C, &HA495991B, &H7852B855)
+    Dim all_equal As Boolean: all_equal = True
+    Dim idx As Long
+    For idx = 0 To 7
+        all_equal = all_equal And (digest(idx) = expected(idx))
+    Next
+    Assert.IsTrue all_equal
+End Sub
+
+'@TestMethod "Level 90"
+Public Sub DigestIntoLongArrayPadded()
+    Dim oSHA256 As CSHA256: Set oSHA256 = New CSHA256
+    Dim digest(0 To 9) As Long
+    oSHA256.DigestIntoArray digest, 2
+    Dim expected As Variant
+    expected = Array( _
+        &H0&, &H0&, _
+        &HE3B0C442, &H98FC1C14, &H9AFBF4C8, &H996FB924, &H27AE41E4, &H649B934C, &HA495991B, &H7852B855 _
+    )
+    Dim all_equal As Boolean: all_equal = True
+    Dim idx As Long
+    For idx = 0 To 7
+        all_equal = all_equal And (digest(idx) = expected(idx))
+    Next
+    Assert.IsTrue all_equal
+End Sub
+
+'@TestMethod "Level 90"
+Public Sub DigestIntoIntegerArray()
+    Dim oSHA256 As CSHA256: Set oSHA256 = New CSHA256
+    Dim digest(0 To 15) As Integer
+    oSHA256.DigestIntoArray digest, 0
+    Dim expected As Variant
+    expected = Array( _
+        &HE3B0, &HC442, &H98FC, &H1C14, &H9AFB, &HF4C8, &H996F, &HB924, _
+        &H27AE, &H41E4, &H649B, &H934C, &HA495, &H991B, &H7852, &HB855 _
+    )
+    Dim all_equal As Boolean: all_equal = True
+    Dim idx As Long
+    For idx = 0 To 15
+        all_equal = all_equal And (digest(idx) = expected(idx))
+    Next
+    Assert.IsTrue all_equal
+End Sub
+
+'@TestMethod "Level 90"
+Public Sub DigestIntoByteArray()
+    Dim oSHA256 As CSHA256: Set oSHA256 = New CSHA256
+    Dim digest(0 To 31) As Byte
+    oSHA256.DigestIntoArray digest, 0
+    Dim expected As Variant
+    expected = Array( _
+        CByte(&HE3), CByte(&HB0), CByte(&HC4), CByte(&H42), CByte(&H98), CByte(&HFC), CByte(&H1C), CByte(&H14), _
+        CByte(&H9A), CByte(&HFB), CByte(&HF4), CByte(&HC8), CByte(&H99), CByte(&H6F), CByte(&HB9), CByte(&H24), _
+        CByte(&H27), CByte(&HAE), CByte(&H41), CByte(&HE4), CByte(&H64), CByte(&H9B), CByte(&H93), CByte(&H4C), _
+        CByte(&HA4), CByte(&H95), CByte(&H99), CByte(&H1B), CByte(&H78), CByte(&H52), CByte(&HB8), CByte(&H55) _
+        )
+    Dim all_equal As Boolean: all_equal = True
+    Dim idx As Long
+    For idx = 0 To 15
+        all_equal = all_equal And (digest(idx) = expected(idx))
+    Next
+    Assert.IsTrue all_equal
+End Sub
+
+'@TestMethod("Level 100")
+Private Sub Err_DigestIntoArray_NotAnArray()
+    Const ExpectedError As Long = 13
+    On Error GoTo TestFail
+
+    'Arrange:
+    Dim oSHA256 As CSHA256: Set oSHA256 = New CSHA256
+    Dim digest As Byte
+
+    'Act:
+    oSHA256.DigestIntoArray digest, 0
+
+Assert:
+    Assert.Fail "Expected error was not raised"
+TestExit:
+    Exit Sub
+TestFail:
+    If Err.Number = ExpectedError Then
+        Resume TestExit
+    Else
+        Resume Assert
+    End If
+End Sub
+
+'@TestMethod("Level 100")
+Private Sub Err_DigestIntoArray_BadArrayType()
+    Const ExpectedError As Long = 13
+    On Error GoTo TestFail
+
+    'Arrange:
+    Dim oSHA256 As CSHA256: Set oSHA256 = New CSHA256
+    Dim digest() As Variant
+
+    'Act:
+    oSHA256.DigestIntoArray digest, 0
+
+Assert:
+    Assert.Fail "Expected error was not raised"
+TestExit:
+    Exit Sub
+TestFail:
+    If Err.Number = ExpectedError Then
+        Resume TestExit
+    Else
+        Resume Assert
+    End If
+End Sub
+
+'@TestMethod("Level 100")
+Private Sub Err_DigestIntoArray_ArrayTooShort()
+    Const ExpectedError As Long = 9
+    On Error GoTo TestFail
+
+    'Arrange:
+    Dim oSHA256 As CSHA256: Set oSHA256 = New CSHA256
+    Dim digest(0 To 6) As Long
+
+    'Act:
+    oSHA256.DigestIntoArray digest, 0
+
+Assert:
+    Assert.Fail "Expected error was not raised"
+TestExit:
+    Exit Sub
+TestFail:
+    If Err.Number = ExpectedError Then
+        Resume TestExit
+    Else
+        Resume Assert
+    End If
+End Sub

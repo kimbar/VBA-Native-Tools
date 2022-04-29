@@ -208,8 +208,7 @@ Public Function DigestAsHexString() As String
     Dim i As Long
     Dim h As String
     For i = 0 To 7
-        h = Hex$(hash(i))
-        DigestAsHexString = DigestAsHexString & Left$("00000000", 8 - Len(h)) & h
+        DigestAsHexString = DigestAsHexString & EightDigitHex(hash(i))
     Next
 End Function
 
@@ -218,6 +217,44 @@ Public Sub DigestIntoArray(ByRef arr As Variant, ByVal start_idx As Long)
     '
     ' The array must be strongly typed with `Byte`, `Integer` or `Long`. 32 bytes, 16 integers or 8 longs are filled in
     ' the array sarting from `start_idx`. If the array is not long enough an error 9 is raised.
+
+    If Not IsFinished Then Me.Finish
+    Dim tname As String
+    Dim idx_arr As Long
+    tname = TypeName(arr)
+    If Right$(tname, 2) <> "()" Then Err.Raise 13, Description:="An Array expected"
+    tname = Left$(tname, Len(tname) - 2)
+    Select Case tname
+        Case "Byte"
+            If start_idx + 31 > UBound(arr) Then GoTo err_array_to_short
+            For idx_arr = 0 To 31
+                Select Case idx_arr Mod 4
+                    Case 0: arr(start_idx + idx_arr) = CByte("&H" & Left$(EightDigitHex(hash(idx_arr \ 4)), 2))
+                    Case 1: arr(start_idx + idx_arr) = CByte("&H" & Mid$(EightDigitHex(hash(idx_arr \ 4)), 3, 2))
+                    Case 2: arr(start_idx + idx_arr) = CByte("&H" & Mid$(EightDigitHex(hash(idx_arr \ 4)), 5, 2))
+                    Case 3: arr(start_idx + idx_arr) = CByte("&H" & Right$(EightDigitHex(hash(idx_arr \ 4)), 2))
+                End Select
+            Next
+        Case "Integer"
+            If start_idx + 15 > UBound(arr) Then GoTo err_array_to_short
+            For idx_arr = 0 To 15
+                Select Case idx_arr Mod 2
+                    Case 0: arr(start_idx + idx_arr) = CInt("&H" & Left$(EightDigitHex(hash(idx_arr \ 2)), 4))
+                    Case 1: arr(start_idx + idx_arr) = CInt("&H" & Right$(EightDigitHex(hash(idx_arr \ 2)), 4))
+                End Select
+            Next
+        Case "Long"
+            If start_idx + 7 > UBound(arr) Then GoTo err_array_to_short
+            For idx_arr = 0 To 7
+                arr(start_idx + idx_arr) = hash(idx_arr)
+            Next
+        Case Else
+            Err.Raise 13, Description:="A Byte, Integer or Long Array expected"
+    End Select
+    GoTo sub_end
+err_array_to_short:
+    Err.Raise 9, Description:="Array too short"
+sub_end:
 End Sub
 
 ' Implementation - public API helpers
@@ -294,6 +331,11 @@ Private Sub PopulateLongArrayFromString(ByRef arr() As Long, ByRef data As Strin
         cursor = cursor + 9    ' 8 chars for the value and 1 char for the separator
     Next
 End Sub
+
+Private Function EightDigitHex(val As Long) As String
+    EightDigitHex = Hex$(val)
+    EightDigitHex = Left$("00000000", 8 - Len(EightDigitHex)) & EightDigitHex
+End Function
 
 ' Main logic
 ' ----------
