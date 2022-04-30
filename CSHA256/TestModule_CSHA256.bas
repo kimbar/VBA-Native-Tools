@@ -224,7 +224,7 @@ Private Sub Err_DigestIntoArray_NotAnArray()
 
     'Arrange:
     Dim oSHA256 As CSHA256: Set oSHA256 = New CSHA256
-    Dim digest As Byte
+    Dim digest As Byte: digest = 0
 
     'Act:
     oSHA256.DigestIntoArray digest, 0

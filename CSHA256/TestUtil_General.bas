@@ -4,7 +4,7 @@ Attribute VB_Name = "TestUtil_General"
 Option Explicit
 Option Private Module
 
-Public Function RoundSigFig(ByVal val As Double, Optional sf As Long = 3) As String
+Public Function RoundSigFig(ByVal val As Double, Optional ByVal sf As Long = 3) As String
     ' Rounds the output to `sf` significant figures
     Dim l10 As Double
     Dim neg As Double: neg = 1#

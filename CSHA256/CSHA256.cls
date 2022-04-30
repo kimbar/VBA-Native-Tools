@@ -214,7 +214,6 @@ Public Function DigestAsHexString() As String
 
     If Not IsFinished Then Me.Finish
     Dim i As Long
-    Dim h As String
     For i = 0 To 7
         DigestAsHexString = DigestAsHexString & EightDigitHex(hash(i))
     Next
@@ -340,7 +339,7 @@ Private Sub PopulateLongArrayFromString(ByRef arr() As Long, ByRef data As Strin
     Next
 End Sub
 
-Private Function EightDigitHex(val As Long) As String
+Private Function EightDigitHex(ByVal val As Long) As String
     EightDigitHex = Hex$(val)
     EightDigitHex = Left$("00000000", 8 - Len(EightDigitHex)) & EightDigitHex
 End Function
