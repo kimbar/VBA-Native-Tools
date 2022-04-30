@@ -288,3 +288,10 @@ TestFail:
         Resume Assert
     End If
 End Sub
+
+'@TestMethod("Level 55")
+Private Sub StringUTF16LE()
+    Dim oSHA256 As CSHA256: Set oSHA256 = New CSHA256
+    oSHA256.UpdateStringUTF16LE "The quick brown fox jumps over the lazy dog"
+    Assert.AreEqual "3B5B0EAC46C8F0C16FA1B9C187ABC8379CC936F6508892969D49234C6C540E58", oSHA256.DigestAsHexString
+End Sub

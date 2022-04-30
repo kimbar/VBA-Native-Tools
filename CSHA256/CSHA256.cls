@@ -179,10 +179,18 @@ End Sub
 Public Sub UpdateStringUTF16LE(ByRef data As String)
     ' Append the buffer of the data being processed with a VBA encoded `String`
     '
-    ' By "VBA encoded" we mean UTF-16LE which is the internal encoding in Windows. The method is purposefully named with
-    ' the cumbersome suffix to warn the user that the calculated hash can be (usually but not always!) compared to
-    ' other, similar textual data only if the latter is also encoded with UTF-16LE (which is unlikely, unless it is also
+    ' By "VBA encoded" we mean UTF-16 LE which is the internal encoding in Windows. The method is purposefully named with
+    ' the cumbersome suffix to warn the user that the calculated hash can be (usually, but not always!) compared to
+    ' other, similar textual data only if the latter is also encoded with UTF-16 LE (which is unlikely, unless it is also
     ' a VBA `String`)
+    
+    Dim cursor As Long
+    Dim char As Long
+    For cursor = 1 To Len(data)
+        char = AscW(Mid$(data, cursor, 1))
+        Me.UpdateByte char And &HFF    ' little end first - little endian
+        Me.UpdateByte char \ &H100
+    Next
 
 End Sub
 
