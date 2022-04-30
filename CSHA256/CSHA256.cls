@@ -183,23 +183,31 @@ Public Sub UpdateStringUTF16LE(ByRef data As String)
     ' the cumbersome suffix to warn the user that the calculated hash can be (usually, but not always!) compared to
     ' other, similar textual data only if the latter is also encoded with UTF-16 LE (which is unlikely, unless it is also
     ' a VBA `String`)
-    
+
     Dim cursor As Long
-    Dim char As Long
+    Dim code As Long
     For cursor = 1 To Len(data)
-        char = AscW(Mid$(data, cursor, 1))
-        Me.UpdateByte char And &HFF    ' little end first - little endian
-        Me.UpdateByte char \ &H100
+        code = AscW(Mid$(data, cursor, 1))
+        Me.UpdateByte code And &HFF    ' little end first - little endian
+        Me.UpdateByte code \ &H100
     Next
 
 End Sub
 
-Public Sub UpdateStringPureASCII(ByRef data As String, ByVal errnum As Integer, Optional ByRef cursor As Long)
+Public Sub UpdateStringPureASCII(ByRef data As String, ByVal errnum As Integer, Optional ByRef cursor As Long = 1)
     ' Append the buffer of the data being processed with a string **strictly** restriced to 00-7F codepoints
     '
     ' At any char in the range 80-FFFF an error with number `errnum` is raised. The `cursor` variable can be
     ' used to find the culprit. The hashing can be resumed after this.
 
+    Dim code As Long
+
+    Do While cursor <= Len(data)
+        code = AscW(Mid$(data, cursor, 1))
+        If code > &H7F Then Err.Raise errnum
+        Me.UpdateByte code And &HFF
+        cursor = cursor + 1
+    Loop
 End Sub
 
 ' Public API - data download

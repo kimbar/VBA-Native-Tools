@@ -295,3 +295,55 @@ Private Sub StringUTF16LE()
     oSHA256.UpdateStringUTF16LE "The quick brown fox jumps over the lazy dog"
     Assert.AreEqual "3B5B0EAC46C8F0C16FA1B9C187ABC8379CC936F6508892969D49234C6C540E58", oSHA256.DigestAsHexString
 End Sub
+
+'@TestMethod("Level 55")
+Private Sub StringPureASCII()
+    Dim oSHA256 As CSHA256: Set oSHA256 = New CSHA256
+    oSHA256.UpdateStringPureASCII "The quick brown fox jumps over the lazy dog", 1000
+    Assert.AreEqual "D7A8FBB307D7809469CA9ABCB0082E4F8D5651E46D3CDB762D02D0BF37C9E592", oSHA256.DigestAsHexString
+End Sub
+
+'@TestMethod("Level 55")
+Private Sub StringPureASCIIRemoveNonASCII()
+    Dim oSHA256 As CSHA256: Set oSHA256 = New CSHA256
+    Dim data As String
+    data = "»The quick brown fox® jumps over the lazy dog®«"
+    Dim removed As String
+    Dim cursor As Long: cursor = 1
+    Do
+        On Error Resume Next
+        oSHA256.UpdateStringPureASCII data, errnum:=1000, cursor:=cursor
+        On Error GoTo 0
+        removed = removed & CStr(cursor) & ":" & Mid$(data, cursor, 1) & " "
+        cursor = cursor + 1    ' skipping non-ASCII character
+        If cursor > Len(data) Then Exit Do
+    Loop
+    ' Note: The hash is equal with the hash for "The quick brown fox jumps over the lazy dog"
+    Assert.AreEqual "D7A8FBB307D7809469CA9ABCB0082E4F8D5651E46D3CDB762D02D0BF37C9E592", oSHA256.DigestAsHexString
+    Assert.AreEqual "1:» 21:® 46:® 47:« ", removed
+End Sub
+
+'@TestMethod("Level 55")
+Private Sub Err_StringPureASCII_NonASCII()
+    Const ExpectedError As Long = 1000
+    On Error GoTo TestFail
+
+    'Arrange:
+    Dim oSHA256 As CSHA256: Set oSHA256 = New CSHA256
+    Dim cursor As Long: cursor = 1
+
+    'Act:
+    oSHA256.UpdateStringPureASCII "The quick brown fox® jumps over the lazy dog®", errnum:=1000, cursor:=cursor
+
+Assert:
+    Assert.Fail "Expected error was not raised"
+TestExit:
+    Assert.AreEqual 20&, cursor, "Location of first non-ascii character"
+    Exit Sub
+TestFail:
+    If Err.Number = ExpectedError Then
+        Resume TestExit
+    Else
+        Resume Assert
+    End If
+End Sub
