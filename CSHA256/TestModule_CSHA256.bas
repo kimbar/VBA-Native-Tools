@@ -66,6 +66,17 @@ Public Sub TwoNonzeroLong()
     Assert.AreEqual "7A0F2A79CE9F48BBE1F1C4CB4AFE9E46D6CBC6FCD390CCE62C3242FFF52370D8", oSHA256.DigestAsHexString
 End Sub
 
+'@TestMethod "Level 30"
+Public Sub NonzeroLongUnaligned()
+    Dim oSHA256 As CSHA256: Set oSHA256 = New CSHA256
+    oSHA256.UpdateByte &HAA
+    oSHA256.UpdateLong &HAAAAAA77
+    oSHA256.UpdateByte &H77
+    oSHA256.UpdateByte &H77
+    oSHA256.UpdateByte &H77
+    Assert.AreEqual "7A0F2A79CE9F48BBE1F1C4CB4AFE9E46D6CBC6FCD390CCE62C3242FFF52370D8", oSHA256.DigestAsHexString
+End Sub
+
 '@TestMethod "Level 20"
 Public Sub SixteenNonZeroLong()
     Dim i As Long

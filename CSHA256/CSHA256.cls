@@ -126,7 +126,7 @@ Public Sub UpdateLong(ByVal data As Long)
     If (current_chunk_bytes_taken And 3) = 0 Then
         UpdateLongAligned data
     Else
-        Err.Raise 1000, "Not implemented"    ' TODO: implement this
+        UpdateLongUnaligned data
     End If
 End Sub
 
@@ -295,6 +295,60 @@ Private Sub UpdateLongAligned(ByVal data As Long)
         ChurnTheChunk
         current_chunk_bytes_taken = 0
     End If
+End Sub
+
+Private Sub UpdateLongUnaligned(ByVal data As Long)
+
+    Dim unalignment As Long
+    Dim high_part_divisor As Long
+    Dim low_part_multiplier As Long
+    Dim low_part_mask As Long
+    Dim high_part_sigbit As Long
+    Dim low_part_sigbit As Long
+
+    unalignment = current_chunk_bytes_taken Mod 4
+    Select Case unalignment
+        Case 1:
+            high_part_divisor = &H100&
+            low_part_multiplier = &H1000000
+            low_part_mask = &H7F&
+            high_part_sigbit = &H800000
+            low_part_sigbit = &H80&
+        Case 2:
+            high_part_divisor = &H10000
+            low_part_multiplier = &H10000
+            low_part_mask = &H7FFF&
+            high_part_sigbit = &H8000&
+            low_part_sigbit = &H8000&
+        Case 3:
+            high_part_divisor = &H1000000
+            low_part_multiplier = &H100&
+            low_part_mask = &H7FFFFF
+            high_part_sigbit = &H80&
+            low_part_sigbit = &H800000
+        Case Else:
+            UpdateLongAligned data
+            Exit Sub
+    End Select
+
+    If data And &H80000000 Then
+        w(current_chunk_bytes_taken \ 4) = _
+            w(current_chunk_bytes_taken \ 4) Or ((data And &H7FFFFFFF) \ high_part_divisor) Or high_part_sigbit
+    Else
+        w(current_chunk_bytes_taken \ 4) = w(current_chunk_bytes_taken \ 4) Or (data \ high_part_divisor)
+    End If
+    current_chunk_bytes_taken = current_chunk_bytes_taken + (4 - unalignment)
+    IncrementTotalLength bits:=((4 - unalignment) * 8)
+
+    If current_chunk_bytes_taken = 64 Then
+        ChurnTheChunk
+        current_chunk_bytes_taken = 0
+    End If
+
+    w(current_chunk_bytes_taken \ 4) = (data And low_part_mask) * low_part_multiplier
+    If data And low_part_sigbit Then w(current_chunk_bytes_taken \ 4) = w(current_chunk_bytes_taken \ 4) Or &H80000000
+    current_chunk_bytes_taken = current_chunk_bytes_taken + unalignment
+    IncrementTotalLength bits:=(unalignment * 8)
 End Sub
 
 Private Sub IncrementTotalLength(ByVal bits As Long, Optional ByVal len_4Gbits As Long = 0&)

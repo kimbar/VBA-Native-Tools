@@ -67,6 +67,36 @@ Public Sub Random1056Bytes()
     Assert.AreEqual "379224785FE5754328B7719CD68F6BCEBFD29232FE1B08A46D5EC1685D4586D1", oSHA256.DigestAsHexString
 End Sub
 
+'@TestMethod "Level 70"
+Public Sub Random1056BytesUnalignedLongs()
+    Dim oSHA256 As CSHA256: Set oSHA256 = New CSHA256
+    Dim idx As Long
+    Dim x As Long
+    Dim long_in_hex As String
+    Dim byte_in_hex As String
+    Dim idx_byte As Long
+    x = &HACE1&
+    idx = 1
+    Do While idx <= 1056
+        LFSR_16Bits x, 8
+        oSHA256.UpdateByte x And &HFF
+        idx = idx + 1
+
+        If (idx < 1000) And ((idx Mod 4) < 4) Then    ' change `< 4` to `= 1` to test the test itself
+            long_in_hex = vbNullString
+            For idx_byte = 1 To 4
+                LFSR_16Bits x, 8
+                byte_in_hex = Hex$(x And &HFF)
+                long_in_hex = long_in_hex & Left$("00", 2 - Len(byte_in_hex)) & byte_in_hex
+                idx = idx + 1
+            Next
+        oSHA256.UpdateLong CLng("&H" & long_in_hex)
+        End If
+
+    Loop
+    Assert.AreEqual "379224785FE5754328B7719CD68F6BCEBFD29232FE1B08A46D5EC1685D4586D1", oSHA256.DigestAsHexString
+End Sub
+
 '@TestMethod "Level 80"
 '@IgnoreTest
 Public Sub RandomFile2MB()
