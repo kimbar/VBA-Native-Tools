@@ -104,6 +104,9 @@ Public Sub Finish()
     ' Padding with length field
     w(14) = total_bits_consumed_hl
     w(15) = total_bits_consumed_ll
+    total_bits_consumed_ll = 0&
+    total_bits_consumed_hl = 0&
+    current_chunk_bytes_taken = 0
     ChurnTheChunk    ' In any case we need to churn the last chunk
     Dim idx As Long
     ' Clearing the chunk just to be extra safe
