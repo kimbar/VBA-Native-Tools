@@ -143,3 +143,83 @@ Public Sub RandomFile2MB()
     If fso.FileExists(Filename) Then fso.DeleteFile (Filename)
 
 End Sub
+
+'@TestMethod "Level 80"
+Public Sub Random1056BytesFromArray()
+    Dim oSHA256 As CSHA256: Set oSHA256 = New CSHA256
+    Dim idx As Long
+    Dim x As Long
+    Dim data(0 To 1055) As Byte
+    x = &HACE1&
+    For idx = 0 To 1055
+        LFSR_16Bits x, 8
+        data(idx) = (x And &HFF)
+    Next
+    oSHA256.UpdateBytesArray data
+    Assert.AreEqual "379224785FE5754328B7719CD68F6BCEBFD29232FE1B08A46D5EC1685D4586D1", oSHA256.DigestAsHexString
+End Sub
+
+'@TestMethod "Level 80"
+Public Sub Random1056BytesFromArrayRestrictedLength()
+    Dim oSHA256 As CSHA256: Set oSHA256 = New CSHA256
+    Dim idx As Long
+    Dim x As Long
+    Dim data(0 To 2048) As Byte
+    Dim result_length As Long
+    x = &HACE1&
+    For idx = 0 To 2048
+        LFSR_16Bits x, 8
+        data(idx) = (x And &HFF)
+    Next
+    result_length = oSHA256.UpdateBytesArray(data, length:=1056)
+    Assert.AreEqual "379224785FE5754328B7719CD68F6BCEBFD29232FE1B08A46D5EC1685D4586D1", oSHA256.DigestAsHexString
+    Assert.AreEqual 1056&, result_length
+End Sub
+
+'@TestMethod "Level 80"
+Public Sub Random1056BytesFromArrayOffset()
+    Dim oSHA256 As CSHA256: Set oSHA256 = New CSHA256
+    Dim idx As Long
+    Dim x As Long
+    Dim data(0 To 2048) As Byte
+    Dim result_length As Long
+    ' prefilling array with random
+    x = &HFEFF&
+    For idx = 0 To 2048
+        LFSR_16Bits x, 8
+        data(idx) = (x And &HFF)
+    Next
+    ' true data
+    x = &HACE1&
+    For idx = 993 To 2048    ' 2048 - 1056 + 1 = 993
+        LFSR_16Bits x, 8
+        data(idx) = (x And &HFF)
+    Next
+    result_length = oSHA256.UpdateBytesArray(data, start:=993)
+    Assert.AreEqual "379224785FE5754328B7719CD68F6BCEBFD29232FE1B08A46D5EC1685D4586D1", oSHA256.DigestAsHexString
+    Assert.AreEqual 1056&, result_length
+End Sub
+
+'@TestMethod "Level 80"
+Public Sub Random1056BytesFromArrayFullShebang()
+    Dim oSHA256 As CSHA256: Set oSHA256 = New CSHA256
+    Dim idx As Long
+    Dim x As Long
+    Dim data(0 To 2048) As Byte
+    Dim result_length As Long
+    ' prefilling array with random
+    x = &HFEFF&
+    For idx = 0 To 2048
+        LFSR_16Bits x, 8
+        data(idx) = (x And &HFF)
+    Next
+    ' true data
+    x = &HACE1&
+    For idx = 450 To 2048
+        LFSR_16Bits x, 8
+        data(idx) = (x And &HFF)
+    Next
+    result_length = oSHA256.UpdateBytesArray(data, start:=450, length:=1056)
+    Assert.AreEqual "379224785FE5754328B7719CD68F6BCEBFD29232FE1B08A46D5EC1685D4586D1", oSHA256.DigestAsHexString
+    Assert.AreEqual 1056&, result_length
+End Sub

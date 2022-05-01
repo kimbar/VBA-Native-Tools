@@ -147,16 +147,28 @@ Public Sub UpdateByte(ByVal data As Byte)
     End If
 End Sub
 
-Public Sub UpdateBytesArray(ByRef data() As Byte)
+Public Function UpdateBytesArray(ByRef data() As Byte, Optional ByVal start As Variant, Optional ByVal length As Variant) As Long
     ' Append the buffer of the data being processed with an array of 8-bit values.
     '
     ' This is the preffered way of uploading the data to the object.
     '
 
     Dim start_run As Byte
-    Dim cursor As Long: cursor = LBound(data)
-    Dim ub As Long: ub = UBound(data)
-    Dim length As Long: length = ub - cursor + 1
+    Dim cursor As Long
+    If IsMissing(start) Then
+        start = LBound(data)
+    Else
+        start = CLng(start)
+    End If
+    cursor = start
+    Dim ub As Long
+    If IsMissing(length) Or (start + CLng(length) > UBound(data) + 1) Then
+        ub = UBound(data)
+    Else
+        ub = start + CLng(length) - 1
+    End If
+    length = ub - start + 1
+    UpdateBytesArray = length
 
     ' Current state of the buffer (chunk) may be unaligned to the Long, here we determine if we need to first realign
     ' the buffer. An edge case - data is to short to realign the buffer - is also taken into account
@@ -166,7 +178,7 @@ Public Sub UpdateBytesArray(ByRef data() As Byte)
     UpdateBytesArrayNaive data, cursor, cursor + start_run - 1
     cursor = cursor + start_run
     ' Now we are long-aligned (unless it was imposible, because data was too short)
-    If cursor > ub Then Exit Sub
+    If cursor > ub Then Exit Function
     ' Efficient implementation since we're aligned to the Long
     Do While ub - cursor >= 4
         UpdateLongAligned FourBytesToLong(data(cursor), data(cursor + 1), data(cursor + 2), data(cursor + 3))
@@ -174,7 +186,7 @@ Public Sub UpdateBytesArray(ByRef data() As Byte)
     Loop
     ' If there is some leftover, we put it in the buffer the naive way
     UpdateBytesArrayNaive data, cursor, ub
-End Sub
+End Function
 
 Public Sub UpdateStringUTF16LE(ByRef data As String)
     ' Append the buffer of the data being processed with a VBA encoded `String`
