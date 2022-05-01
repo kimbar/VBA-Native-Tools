@@ -15,8 +15,8 @@ Public Function UpdateBytesArray( _
 ## Parameters
 
 - `data` - (`ByRef Byte()`) - data being uploaded, the data is not modified in the method
-- `start` - (`Optional ByVal Long`) - first index in the data array being upladed
-- `length` - (`Optional ByVal Long`) - lenght of the data being uploaded
+- `start` - (`Optional ByVal Long`) - first index in the data array being uploaded
+- `length` - (`Optional ByVal Long`) - length of the data being uploaded
 
 ## Return values
 
@@ -24,13 +24,13 @@ Public Function UpdateBytesArray( _
 
 ## Remarks
 
-This is the preffered way of uploading **binary** data to the object.
+This is the preferred way of uploading **binary** data to the object.
 
 If no `start` and `length` parameters are given full array is uploaded. If start is not given the data from the first
 array element (`LBound(data)`) are uploaded. If `length` is not given or is too big, the data to the end of
-array (`UBound(data)`) are ulpoaded. No overflow errors are raised.
+array (`UBound(data)`) are uploaded. No overflow errors are raised.
 
-The method returns length (in bytes) of the data uploaded which removes the neccessity to calculate it alongside of the
+The method returns length (in bytes) of the data uploaded which removes the necessity to calculate it alongside of the
 method call in the case of ambiguity.
 
 ## Examples

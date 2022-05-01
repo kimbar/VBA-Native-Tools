@@ -29,7 +29,7 @@ Public Sub DigestIntoArray( _
 The hashing is implicitly finalized if necessary (see: `CHSA256.Finish()`). Updating of the data is still allowed after this point, but hash won't be changed until
 `CHSA256.Reset()`.
 
-The array must be strongly typed with `Byte`, `Integer` or `Long`. 32 bytes, 16 integers or 8 longs are filled in the array sarting from `start_idx`.
+The array must be strongly typed with `Byte`, `Integer` or `Long`. 32 bytes, 16 integers or 8 longs are filled in the array starting from `start_idx`.
 
 ## Examples
 

@@ -12,8 +12,8 @@ Public Sub UpdateStringUTF16LE(ByRef data As String)
 
 ## Remarks
 
-This is the recommended metod to calculate hashes if comparisions of `String` type data are to be made. Comparisions of
-`String` type with a file contents are more compicated. See [general remarks](../README.md#remarks) for details about encoding issues.
+This is the recommended method to calculate hashes if comparisons of `String` type data are to be made. Comparisons of
+`String` type with a file contents are more complicated. See [general remarks](../README.md#remarks) for details about encoding issues.
 
 By "VBA encoded" we mean UTF-16 LE which is the internal encoding in Windows. The method is purposefully named with the
 cumbersome suffix to warn the user that the calculated hash can be (usually, but not always!) compared to other, similar

@@ -107,7 +107,7 @@ Public Sub RandomFile2MB()
     Dim fileNo As Integer
     Dim block_idx As Long
     Dim data(0 To BLOCKSIZE - 1) As Byte
-    Dim Filename As String
+    Dim filename As String
     Dim lfsr_state As Long
     Dim byte_idx As Variant
 
@@ -116,11 +116,11 @@ Public Sub RandomFile2MB()
     lfsr_state = &HACE1&
     ChDir Environ("Temp")
 
-    Filename = "VBA_CSHA256_testfile_RandomFile2MB.bin"
-    If fso.FileExists(Filename) Then fso.DeleteFile (Filename)
+    filename = "VBA_CSHA256_testfile_RandomFile2MB.bin"
+    If fso.FileExists(filename) Then fso.DeleteFile (filename)
 
     fileNo = FreeFile
-    Open Filename For Binary Access Write As #fileNo
+    Open filename For Binary Access Write As #fileNo
     For block_idx = 0 To NUMBLOCKS - 1
         For byte_idx = 0 To BLOCKSIZE - 1
             data(byte_idx) = (lfsr_state And &HFF)
@@ -132,7 +132,7 @@ Public Sub RandomFile2MB()
 
     fileNo = FreeFile
     Dim oSHA256 As CSHA256: Set oSHA256 = New CSHA256
-    Open Filename For Binary Access Read As #fileNo
+    Open filename For Binary Access Read As #fileNo
     For block_idx = 0 To NUMBLOCKS - 1
         Get #fileNo, 1 + block_idx * BLOCKSIZE, data
         oSHA256.UpdateBytesArray data
@@ -140,7 +140,7 @@ Public Sub RandomFile2MB()
     Close #fileNo
 
     Assert.AreEqual "8C5BD270CF77BEBF60002F8FE74F400F0123688B60F86D4BAA55CD182000F468", oSHA256.DigestAsHexString
-    If fso.FileExists(Filename) Then fso.DeleteFile (Filename)
+    If fso.FileExists(filename) Then fso.DeleteFile (filename)
 
 End Sub
 

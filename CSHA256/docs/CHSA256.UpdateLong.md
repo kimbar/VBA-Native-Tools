@@ -21,7 +21,7 @@ Appends data with four zero bytes.
 
 ```VB
 Dim oSHA256 As New CSHA256
-oSHA256.UpdateLong 0&    ' explicit types for literals are recomended
+oSHA256.UpdateLong 0&    ' explicit types for literals are recommended
 ```
 
 Appends data with four bytes from a string in hexadecimal format.

@@ -1,6 +1,6 @@
 # CHSA256.UpdateStringPureASCII (method)
 
-Append the buffer of the data being processed with a string **strictly** restriced to 00-7F codepoints
+Append the buffer of the data being processed with a string **strictly** restricted to 00-7F code-points
 
 ```VB
 Public Sub UpdateStringPureASCII( _
@@ -45,6 +45,8 @@ Do
     If cursor > Len(data) Then Exit Do
 Loop
 Debug.Print oSHA256.DigestAsHexString
+' prints:
+' D05E082F1D7EFB2555EB468F2BA9F9E51E8A0F6BB050476C5133D6EDE35143B9
 ' hash identical to the hash of "Witaj wiecie!"
 ```
 

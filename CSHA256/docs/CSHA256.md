@@ -26,13 +26,38 @@ Obtaining hash value for a `String` type variable (recommended way). See [genera
 Dim oSHA256 As New CSHA256
 oSHA256.UpdateStringUTF16LE "The quick brown fox jumps over the lazy dog"
 Debug.Print oSHA256.DigestAsHexString
+' prints:
+' 3B5B0EAC46C8F0C16FA1B9C187ABC8379CC936F6508892969D49234C6C540E58
 ```
 
-Obtaining hash value of a file
+Obtaining hash value of a file.
 
 ```VB
 Dim oSHA256 As New CSHA256
-Const Long BLOCKSIZE = 1024
-Dim data(0 to BLOCKSIZE-1) As Byte
-' ...
+Dim fso As Object: Set fso = CreateObject("Scripting.FileSystemObject")
+Const BLOCKSIZE As Long = 1024&    ' 1KB at a time
+Dim data(0 To BLOCKSIZE - 1) As Byte
+Dim filename As String: filename = ".\file.exe"
+Dim fileNo As Integer: fileNo = FreeFile
+Dim block_idx As Long
+Dim bytes_read As Long
+
+Open filename For Binary Access Read As #fileNo
+Do
+    If (block_idx + 1) * BLOCKSIZE < LOF(fileNo) Then
+        bytes_read = BLOCKSIZE
+    Else
+        bytes_read = LOF(fileNo) - (block_idx * BLOCKSIZE)
+    End If
+    If bytes_read < 0 Then Exit Do
+
+    Get #fileNo, 1 + block_idx * BLOCKSIZE, data
+    oSHA256.UpdateBytesArray data, length:=bytes_read
+
+    block_idx = block_idx + 1
+    DoEvents
+Loop
+Close #fileNo
+
+Debug.Print oSHA256.DigestAsHexString
 ```
