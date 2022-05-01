@@ -11,7 +11,7 @@ Attribute VB_Exposed = False
 
 ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' '
 '
-'                                      CSHA256
+'                                    CSHA256
 '
 ' SHA-2 256 hashing algorithm class.
 '
@@ -31,11 +31,10 @@ Private total_bits_consumed_hl As Long
 Private current_chunk_bytes_taken As Byte
 Private IsFinished As Boolean
 
-' Consts
+' Constants
 Private two_topmost_bits_values(0 To 3) As Long
 Private three_topmost_bits_values(0 To 7) As Long
 Private sha_k(0 To 63) As Long
-
 
 ' Public API - general management
 ' -------------------------------
@@ -56,21 +55,17 @@ Private Sub Class_Initialize()
         "A2BFE8A1 A81A664B C24B8B70 C76C51A3 D192E819 D6990624 F40E3585 106AA070 " & _
         "19A4C116 1E376C08 2748774C 34B0BCB5 391C0CB3 4ED8AA4A 5B9CCA4F 682E6FF3 " & _
         "748F82EE 78A5636F 84C87814 8CC70208 90BEFFFA A4506CEB BEF9A3F7 C67178F2 "
-    ' Reseting variables (state)
+    ' Resetting variables (state)
     Me.Reset
 End Sub
 
 Private Sub Class_Terminate()
-    ' We generaly try to clear the internal state when not needed anymore to avoid spewing the data in memory
+    ' We generally try to clear the internal state when not needed any more to avoid spewing the data in memory
     Me.Reset
 End Sub
 
 Public Sub Reset()
     ' Reset the state of the object.
-    '
-    ' The hashing object can be reused to calculate another hash. The state of the `CSHA24` class object after this
-    ' method is identical to the initial state after creation.
-    '
 
     Dim idx As Long
     For idx = 0 To 63
@@ -89,10 +84,6 @@ End Sub
 
 Public Sub Finish()
     ' Explicitly finish the hashing.
-    '
-    ' The hash is being calculated at this point and can be read through the `Digest*` methods. Sensitive internal data
-    ' are cleared. Updating of the data is still allowed after this point, but hash won't be changed until `Reset`.
-    '
 
     ' Setting up the `1` bit just behind the data, as specification states
     w(current_chunk_bytes_taken \ 4) = w(current_chunk_bytes_taken \ 4) Or ByteToLong(&H80, current_chunk_bytes_taken Mod 4)
@@ -121,10 +112,6 @@ End Sub
 
 Public Sub UpdateLong(ByVal data As Long)
     ' Append the buffer of the data being processed with a single 32-bit value.
-    '
-    ' The `data` is treated as an unsigned value, that is literal value of `-1` is read as `&HFFFFFFFF` (32 binary
-    ' ones). Hexadecimal values from strings can be appended with `.UpdateLong(CLng("&H12345678"))
-    '
 
     If (current_chunk_bytes_taken And 3) = 0 Then
         UpdateLongAligned data
@@ -135,9 +122,6 @@ End Sub
 
 Public Sub UpdateByte(ByVal data As Byte)
     ' Append the buffer of the data being processed with a single 8-bit value.
-    '
-    ' That's it. That's the method.
-    '
 
     ' The byte is "Or-ed" to the buffer (chunk) after being l-shifted into position in Long
     w(current_chunk_bytes_taken \ 4) = w(current_chunk_bytes_taken \ 4) Or ByteToLong(data, current_chunk_bytes_taken And 3)
@@ -152,9 +136,6 @@ End Sub
 
 Public Function UpdateBytesArray(ByRef data() As Byte, Optional ByVal start As Variant, Optional ByVal length As Variant) As Long
     ' Append the buffer of the data being processed with an array of 8-bit values.
-    '
-    ' This is the preffered way of uploading the data to the object.
-    '
 
     Dim start_run As Byte
     Dim cursor As Long
@@ -180,7 +161,7 @@ Public Function UpdateBytesArray(ByRef data() As Byte, Optional ByVal start As V
     If length < start_run Then start_run = length
     UpdateBytesArrayNaive data, cursor, cursor + start_run - 1
     cursor = cursor + start_run
-    ' Now we are long-aligned (unless it was imposible, because data was too short)
+    ' Now we are long-aligned (unless it was impossible, because data was too short)
     If cursor > ub Then Exit Function
     ' Efficient implementation since we're aligned to the Long
     Do While ub - cursor >= 4
@@ -193,11 +174,6 @@ End Function
 
 Public Sub UpdateStringUTF16LE(ByRef data As String)
     ' Append the buffer of the data being processed with a VBA encoded `String`
-    '
-    ' By "VBA encoded" we mean UTF-16 LE which is the internal encoding in Windows. The method is purposefully named with
-    ' the cumbersome suffix to warn the user that the calculated hash can be (usually, but not always!) compared to
-    ' other, similar textual data only if the latter is also encoded with UTF-16 LE (which is unlikely, unless it is also
-    ' a VBA `String`)
 
     Dim cursor As Long
     Dim code As Long
@@ -210,10 +186,7 @@ Public Sub UpdateStringUTF16LE(ByRef data As String)
 End Sub
 
 Public Sub UpdateStringPureASCII(ByRef data As String, ByVal errnum As Integer, Optional ByRef cursor As Long = 1)
-    ' Append the buffer of the data being processed with a string **strictly** restriced to 00-7F codepoints
-    '
-    ' At any char in the range 80-FFFF an error with number `errnum` is raised. The `cursor` variable can be
-    ' used to find the culprit. The hashing can be resumed after this.
+    ' Append the buffer of the data being processed with a string **strictly** restricted to 00-7F code-points
 
     Dim code As Long
 
@@ -230,10 +203,6 @@ End Sub
 
 Public Function DigestAsHexString() As String
     ' Return the data hash as a hexadecimal string
-    '
-    ' The hashing is implicitly finalized if necessary (see: `Finish`) and the hash is returned as an uppercase
-    ' hexadecimal 256-bit (64-digit) value. Updating of the data is still allowed after this point, but hash won't be
-    ' changed until `Reset`.
 
     If Not IsFinished Then Me.Finish
     Dim i As Long
@@ -244,9 +213,6 @@ End Function
 
 Public Sub DigestIntoArray(ByRef arr As Variant, ByVal start_idx As Long)
     ' Store the data in an Array starting from element `start_idx`
-    '
-    ' The array must be strongly typed with `Byte`, `Integer` or `Long`. 32 bytes, 16 integers or 8 longs are filled in
-    ' the array sarting from `start_idx`. If the array is not long enough an error 9 is raised.
 
     If Not IsFinished Then Me.Finish
     Dim tname As String
@@ -292,6 +258,7 @@ End Sub
 
 Private Sub UpdateBytesArrayNaive(ByRef data() As Byte, ByVal lb As Long, ByVal ub As Long)
     ' Copy bytes into the buffer
+    '
     ' Naive implementation, only to be used for unaligned ends of arrays
     Dim idx As Long
     For idx = lb To ub
@@ -301,6 +268,7 @@ End Sub
 
 Private Sub UpdateLongAligned(ByVal data As Long)
     ' Copy single Long into the buffer
+    '
     ' Fast implementation - only assignment of a single variable to the buffer (chunk)
     w(current_chunk_bytes_taken \ 4) = data
     current_chunk_bytes_taken = current_chunk_bytes_taken + 4
@@ -313,7 +281,9 @@ Private Sub UpdateLongAligned(ByVal data As Long)
 End Sub
 
 Private Sub UpdateLongUnaligned(ByVal data As Long)
-
+    ' Copy single Long into the buffer
+    '
+    ' Used in an unfortunate case when the length of uploaded data is not divisible by 4.
     Dim unalignment As Long
     Dim high_part_divisor As Long
     Dim low_part_multiplier As Long
@@ -376,6 +346,7 @@ End Sub
 
 Private Function ByteToLong(ByVal x As Byte, ByVal byte_idx_bigendian As Byte) As Long
     ' Move (leftshift) a byte into one of four bytes in the Long
+    '
     ' The bytes are numbered big-endian style (as everything in the SHA-2 is)
     Select Case byte_idx_bigendian
         Case 3: ByteToLong = x
@@ -393,6 +364,7 @@ End Function
 
 Private Function FourBytesToLong(ByVal hhbyte As Byte, ByVal lhbyte As Byte, ByVal hlbyte As Byte, ByVal llbyte As Byte) As Long
     ' Convert four bytes into a single Long
+    '
     ' The bytes are given to the function in big-endian sequence
     Dim lower As Long
     lower = (lhbyte * &H10000) Or (hlbyte * &H100&) Or llbyte
@@ -405,6 +377,7 @@ End Function
 
 Private Sub PopulateLongArrayFromString(ByRef arr() As Long, ByRef data As String)
     ' Populate Long Array From String
+    '
     ' Strong typing of the constants arrays proven to be faster. Since we need to populate the arrays with many values,
     ' but we need to do it once per object creation, this subroutine allows to keep these values in more manageable form
     ' - in a string. Each value occupies 8 chars, and values are separated with one char (typically: a space)
@@ -471,7 +444,7 @@ Private Sub ChurnTheChunk()
     hash(5) = UnsigSum(hash(5), f)
     hash(6) = UnsigSum(hash(6), g)
     hash(7) = UnsigSum(hash(7), h)
-    ' We clear the buffer (chunk) (at least the original data part) right away beacause this simplifies reasoning
+    ' We clear the buffer (chunk) (at least the original data part) right away because this simplifies reasoning
     ' in al of the `Update*` subs.
 skip:
     For idx = 0 To 15
@@ -499,6 +472,7 @@ End Function
 
 Private Function UnsigSum4(ByVal a As Long, ByVal b As Long, ByVal c As Long, ByVal d As Long) As Long
     ' `a+b+c+d` but disregard the sign bit and overflow
+    '
     ' This was optimized because this function is one on the bottle-neck
     Dim topmost_bits As Long
     If a And &H80000000 Then topmost_bits = topmost_bits + 4&
@@ -542,6 +516,7 @@ End Function
 
 Private Function Sigma0Expand(ByVal x As Long) As Long
     ' Calculate `(x rightrotate 7) xor (x rightrotate 18) xor (x rightshift 3)`
+    '
     ' This was optimized because this function is one on the bottle-neck
     ' The calculation is "decomposed" into bit masks for every bit of the input. Since we calculate the output bit-wise
     ' we can do it literally bit-wise: every line provides for a single bit of the 32-bit input value. This has proven
@@ -584,6 +559,7 @@ End Function
 
 Private Function Sigma1Expand(ByVal x As Long) As Long
     ' Calculate `(x rightrotate 17) xor (x rightrotate 19) xor (x rightshift 10)`
+    '
     ' More description in `Sigma0Expand`
     Dim r As Long
     If x And &H1& Then r = r Xor &HA000&
@@ -623,6 +599,7 @@ End Function
 
 Private Function Sigma0Normal(ByVal x As Long) As Long
     ' Calculate `(x rightrotate 2) xor (x rightrotate 13) xor (x rightrotate 22)`
+    '
     ' More description in `Sigma0Expand`
     Dim r As Long
     If x And &H1& Then r = r Xor &H40080400
@@ -662,6 +639,7 @@ End Function
 
 Private Function Sigma1Normal(ByVal x As Long) As Long
     ' Calculate `(x rightrotate 6) xor (x rightrotate 11) xor (x rightrotate 25)`
+    '
     ' More description in `Sigma0Expand`
     Dim r As Long
     If x And &H1& Then r = r Xor &H4200080
