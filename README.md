@@ -7,7 +7,7 @@ This is for the main branch welcome `README.md`
 ```md
 ## CSHA256
 
-SHA-2 256 hashing algorithm class.
+SHA-2 256 hashing algorithm native implementation.
 ```
 
 ## Developement

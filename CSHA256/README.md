@@ -1,57 +1,57 @@
 # CSHA256
 
-SHA-2 256 hashing algorithm class.
+SHA-2 256 hashing algorithm native implementation. No external dependencies.
 
-## Basic usage
+## Usage
 
-Copy `CSHA256.cls` file into your project. All `Test(Module|Util)_.*` files are not required, but strongly recommended.
+Import `CSHA256.cls` file into your project. All `Test(Module|Util)_.*` files are not required, but strongly recommended
+at first import.
+
+### Basic example
+
+Obtaining hash value for a `String` type variable (recommended way). See ["Remarks" section below](#remarks) for details about encoding issues.
 
 ```VB
-Dim oSHA256 As CSHA256
-Set oSHA256 = New CSHA256
-oSHA256.UpdateBytesArray StrConv("The quick brown fox jumps over the lazy dog", vbFromUnicode)
-Debug.Print oSHA256.Digest
+Dim oSHA256 As New CSHA256
+oSHA256.UpdateStringUTF16LE "The quick brown fox jumps over the lazy dog"
+Debug.Print oSHA256.DigestAsHexString
 ```
 
-## Methods
+More examples can be found in the `CSHA256` class and its methods documentation.
 
----
+### Usage overview
 
-### `Public Sub UpdateLong(ByVal data As Long)`
+Object of the `CSHA256` class is used to upload ("update" in SHA-2 terminology) data into the hashing algorithm and
+download ("digest") the hash value. The object may be reused multiple times.
 
-Append the buffer of the data being processed with a single 32-bit value. The `data` is treated as an unsigned value,
-that is literal value of `-1` is read as `&HFFFFFFFF` (32 binary ones).
+All `CSHA256.Update.*()` methods are used to upload the data being hashed into the internal buffer of the class. The buffer is
+64 bytes long, so at most 63 bytes of the data are being stored at any given time in the buffer. When buffer fills up it
+is being processed and stored data are overwritten. The `CSHA256.Update.*()` methods can be mixed in any order.
 
----
+The `CSHA256.Finish()` method may be called at the end of data. It is not required.
 
-### `Public Sub UpdateByte(ByVal data As Byte)`
+The `CSHA256.Digest.*()` methods are used to retrive the hash. They may be called multiple times.
 
-Append the buffer of the data being processed with a single 8-bit value.
+After calculating the final hash (either by `CSHA256.Finish()` or by `CSHA256.Digest.*()`) no further changes will be made to the hash
+value. However, the `CSHA256.Update.*()` and `CSHA256.Finish()` methods will be called without error. Uploaded data will
+be stored in the buffer and then discarded.
 
----
+To reuse the object (to calculate another hash), the `CSHA256.Reset()` method may be called.
 
-### `Public Sub UpdateBytesArray(ByRef data() As Byte)`
+Before object desctruction all unused data and hash value are cleared from memory.
 
-Append the buffer of the data being processed with an array of 8-bit values.
+## API
 
----
+- [CSHA256](docs/CSHA256.md) - hashing class
 
-### `Public Sub Finish()`
+## Remarks
 
-Explicitly finish the hashing. The hash is being calculated at this point and can be read through the `Digest` method.
-Sensitive internal data are cleared. Updating of the data is still possible after this point, but hash won't be changed
-until `Reset`.
+The SHA-2 algorithm in its pure form, operates at a **bit** level. The data being hashed are understood as a stream of
+bits - from the zeroth to the last. The `CSHA24` constricts this possibility and takes up
+data at a **byte** level. Each byte is uploaded its 7th bit first, then 6th down to zeroth. This behaviour is
+absolutelly uncontroverial and adopted by all implementations.
 
----
+Convinently, the smallest granulartiy of any disk file is also a byte, therefore in any circumastances, two identical
+files, read in binary mode, will produce the same hash value.
 
-### `Public Function DigestAsHexString() As String`
-
-The hashing is implicitly finalized if necessary (see: `Finish`) and the hash is returned. Updating of the data is
-still possible after this point, but hash won't be changed until `Reset`.
-
----
-
-### `Public Sub Reset()`
-
-The hashing object can be reused to calculate another hash. The state of the `CSHA24` class object after this method is
-identical to the initial state after creation.
+Things get complicated with larger ***TODO***
