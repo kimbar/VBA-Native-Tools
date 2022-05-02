@@ -1,14 +1,21 @@
-# VBA-Native-Tools
+# JSON development branch
 
-Common concern tools written completely in native VBA with no early binding (or no binding if possible)
+## Summary
 
-## [CSHA256](./CSHA256/README.md)
+This is for the main branch welcome `README.md`
 
-SHA-2 256 hashing algorithm native implementation.
-
-## JSON
+```md
+## [JSON](./JSON/README.md)
 
 JSON decoder/encoder.
+```
 
-**⚠ Pre-release stage** decoder is mostly full featured, encoder is
-a little sketchy, very little testing, no documentation, API will change.
+## Development
+
+- **2022-05-02**: development branch created
+
+## TODO
+
+- write tests
+- write documentation
+- codec interfaces and default class
