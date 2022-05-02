@@ -77,9 +77,9 @@ binary value unambiguously represents a character - this encoding can be hashed 
   unambiguously represents a character, currently (2022) this is the most widespread encoding - this encoding should be dealt with
   by the user
 
-  By "dealt with by the user" we mean - before hashing and comparing of two textual contents it must be assured that
-  both are in the same encoding, that is: they are represented the same way in binary (byte-wise) form. Comparing two
-  seemingly identical texts with different encodings will produce different hashes.
+By "dealt with by the user" we mean - before hashing and comparing of two textual contents it must be assured that
+both are in the same encoding, that is: they are represented the same way in binary (byte-wise) form. Comparing two
+seemingly identical texts with different encodings will produce different hashes.
 
 That being said, three use cases are relatively safe (but still not foolproof):
 
