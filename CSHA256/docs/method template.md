@@ -15,6 +15,10 @@
 
 - `{name}` - (`{type}`) - {description}
 
+## Raises
+
+- `{number}` - if {description}
+
 ## Remarks
 
 {remarks}

@@ -8,15 +8,15 @@ The class has no public properties.
 
 ## Methods
 
-- [~~UpdateLong~~](./CHSA256.UpdateLong.md)
-- [~~UpdateByte~~](./CHSA256.UpdateByte.md)
+- [UpdateLong](./CHSA256.UpdateLong.md)
+- [UpdateByte](./CHSA256.UpdateByte.md)
 - [UpdateBytesArray](./CHSA256.UpdateBytesArray.md)
 - [UpdateStringUTF16LE](./CHSA256.UpdateStringUTF16LE.md)
 - [UpdateStringPureASCII](./CHSA256.UpdateStringPureASCII.md)
-- [~~Finish~~](./CHSA256.Finish.md)
-- [~~DigestAsHexString~~](./CHSA256.DigestAsHexString.md)
+- [Finish](./CHSA256.Finish.md)
+- [DigestAsHexString](./CHSA256.DigestAsHexString.md)
 - [DigestIntoArray](./CHSA256.DigestIntoArray.md)
-- [~~Reset~~](./CHSA256.Reset.md)
+- [Reset](./CHSA256.Reset.md)
 
 ## Examples
 
@@ -29,6 +29,8 @@ Debug.Print oSHA256.DigestAsHexString
 ' prints:
 ' 3B5B0EAC46C8F0C16FA1B9C187ABC8379CC936F6508892969D49234C6C540E58
 ```
+
+---
 
 Obtaining hash value of a file.
 

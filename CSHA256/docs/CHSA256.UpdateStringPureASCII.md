@@ -34,7 +34,7 @@ culprit. The hashing can be resumed after this.
 It's up to the user how to deal with non-ASCII characters. The simplest policy - removing them from the data on the fly - can be realized like this:
 
 ```VB
-Dim oSHA256 As CSHA256: Set oSHA256 = New CSHA256
+Dim oSHA256 As New CSHA256
 Dim data As String: data = "Witaj Świecie!"
 Dim cursor As Long: cursor = 1
 Do
@@ -50,8 +50,27 @@ Debug.Print oSHA256.DigestAsHexString
 ' hash identical to the hash of "Witaj wiecie!"
 ```
 
-{example description}
+---
+
+If the input is believed always to be ASCII we can accept an error.
 
 ```VB
-{example}
+Dim oSHA256 As New CSHA256
+On Error GoTo nonascii
+oSHA256.UpdateStringPureASCII "The quick brown fox jumps over the lazy dog", errnum:=1000
+Debug.Print oSHA256.DigestAsHexString
+' prints:
+' D7A8FBB307D7809469CA9ABCB0082E4F8D5651E46D3CDB762D02D0BF37C9E592
+
+nonascii:
+Debug.Print "Non-ASCII character detected"
+Err.Clear
+```
+
+The actual data stream hashed here is (hexadecimally):
+
+```hex
+54 68 65 20 71 75 69 63 6B 20 62 72 6F 77 6E 20
+66 6F 78 20 6A 75 6D 70 73 20 6F 76 65 72 20 74
+68 65 20 6C 61 7A 79 20 64 6F 67
 ```

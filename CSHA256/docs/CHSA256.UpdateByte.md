@@ -23,6 +23,8 @@ Dim oSHA256 As New CSHA256
 oSHA256.UpdateByte Asc("A")
 ```
 
+---
+
 Appends data with a single byte with value `134`.
 
 ```VB

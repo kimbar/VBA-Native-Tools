@@ -1,9 +1,11 @@
 Attribute VB_Name = "Examples_Docs"
 '@Folder "Examples"
+'@TestModule
 
 Option Private Module
 Option Explicit
 
+'@TestMethod "Docs example"
 Private Sub Exmpl_CSHA256_1()
 ' To run in the immediate window:
 '    Examples_Docs.Exmpl_CSHA256_1
@@ -17,6 +19,7 @@ Debug.Print oSHA256.DigestAsHexString
 '```
 End Sub
 
+'@TestMethod "Docs example"
 Private Sub Exmpl_CSHA256_2()
 ' To run in the immediate window:
 '    Examples_Docs.Exmpl_CSHA256_2
@@ -40,10 +43,10 @@ Do
         bytes_read = LOF(fileNo) - (block_idx * BLOCKSIZE)
     End If
     If bytes_read < 0 Then Exit Do
-    
+
     Get #fileNo, 1 + block_idx * BLOCKSIZE, data
     oSHA256.UpdateBytesArray data, length:=bytes_read
-    
+
     block_idx = block_idx + 1
     DoEvents
 Loop
@@ -53,6 +56,7 @@ Debug.Print oSHA256.DigestAsHexString
 '```
 End Sub
 
+'@TestMethod "Docs example"
 Private Sub Exmpl_CHSA256_UpdateLong_1()
 ' To run in the immediate window:
 '    Examples_Docs.Exmpl_CHSA256_UpdateLong_1
@@ -63,6 +67,7 @@ oSHA256.UpdateLong 0&    ' explicit types for literals are recommended
 '```
 End Sub
 
+'@TestMethod "Docs example"
 Private Sub Exmpl_CHSA256_UpdateLong_2()
 ' To run in the immediate window:
 '    Examples_Docs.Exmpl_CHSA256_UpdateLong_2
@@ -74,6 +79,7 @@ oSHA256.UpdateLong CLng("&H" & hexformat)
 '```
 End Sub
 
+'@TestMethod "Docs example"
 Private Sub Exmpl_CHSA256_UpdateByte_1()
 ' To run in the immediate window:
 '    Examples_Docs.Exmpl_CHSA256_UpdateByte_1
@@ -84,6 +90,7 @@ oSHA256.UpdateByte Asc("A")
 '```
 End Sub
 
+'@TestMethod "Docs example"
 Private Sub Exmpl_CHSA256_UpdateByte_2()
 ' To run in the immediate window:
 '    Examples_Docs.Exmpl_CHSA256_UpdateByte_2
@@ -94,12 +101,13 @@ oSHA256.UpdateByte (134 And &HFF)    ' overflow protection
 '```
 End Sub
 
+'@TestMethod "Docs example"
 Private Sub Exmpl_CHSA256_UpdateStringPureASCII_1()
 ' To run in the immediate window:
 '    Examples_Docs.Exmpl_CHSA256_UpdateStringPureASCII_1
 
 '```VB
-Dim oSHA256 As CSHA256: Set oSHA256 = New CSHA256
+Dim oSHA256 As New CSHA256
 Dim data As String: data = "Witaj Œwiecie!"
 Dim cursor As Long: cursor = 1
 Do
@@ -116,6 +124,26 @@ Debug.Print oSHA256.DigestAsHexString
 '```
 End Sub
 
+'@TestMethod "Docs example"
+Private Sub Exmpl_CHSA256_UpdateStringPureASCII_2()
+' To run in the immediate window:
+'    Examples_Docs.Exmpl_CHSA256_UpdateStringPureASCII_2
+
+'```VB
+Dim oSHA256 As New CSHA256
+On Error GoTo nonascii
+oSHA256.UpdateStringPureASCII "The quick brown fox jumps over the lazy dog", errnum:=1000
+Debug.Print oSHA256.DigestAsHexString
+' prints:
+' D7A8FBB307D7809469CA9ABCB0082E4F8D5651E46D3CDB762D02D0BF37C9E592
+Exit Sub   ' remove from docs
+nonascii:
+Debug.Print "Non-ASCII character detected"
+Err.Clear
+'```
+End Sub
+
+'@TestMethod "Docs example"
 Private Sub Exmpl_CHSA256_Finish_1()
 ' To run in the immediate window:
 '    Examples_Docs.Exmpl_CHSA256_Finish_1
@@ -129,6 +157,7 @@ oSHA256.Finish    ' at this point `oSHA256` contains only hash
 '```
 End Sub
 
+'@TestMethod "Docs example"
 Private Sub Exmpl_CHSA256_DigestAsHexString_1()
 ' To run in the immediate window:
 '    Examples_Docs.Exmpl_CHSA256_DigestAsHexString_1
@@ -141,6 +170,7 @@ Debug.Print oSHA256.DigestAsHexString
 '```
 End Sub
 
+'@TestMethod "Docs example"
 Private Sub Exmpl_CHSA256_DigestAsHexString_2()
 ' To run in the immediate window:
 '    Examples_Docs.Exmpl_CHSA256_DigestAsHexString_2
@@ -154,6 +184,7 @@ Debug.Print oSHA256.DigestAsHexString
 '```
 End Sub
 
+'@TestMethod "Docs example"
 Private Sub Exmpl_CHSA256_Reset_1()
 ' To run in the immediate window:
 '    Examples_Docs.Exmpl_CHSA256_Reset_1
@@ -171,5 +202,41 @@ oSHA256.UpdateStringUTF16LE "Here we go again"
 Debug.Print oSHA256.DigestAsHexString
 ' prints
 ' 17E408B44C2F95D81E1890D8D4B9281786E95292747380388D473DCA7B60828C
+'```
+End Sub
+
+'@TestMethod "Docs example"
+Private Sub Exmpl_CHSA256_UpdateBytesArray_1()
+' To run in the immediate window:
+'    Examples_Docs.Exmpl_CHSA256_UpdateBytesArray_1
+
+'```VB
+Dim oSHA256 As New CSHA256
+oSHA256.UpdateBytesArray StrConv("The quick brown fox® jumps over the lazy dog®", vbFromUnicode)
+Debug.Print oSHA256.DigestAsHexString
+' prints:
+' 5194503420FD84936AC302EC6048430F7C96555922F16E03408D4D1C428F8BEB
+'```
+End Sub
+
+'@TestMethod "Docs example"
+Private Sub Exmpl_CHSA256_DigestIntoArray_1()
+' To run in the immediate window:
+'    Examples_Docs.Exmpl_CHSA256_DigestIntoArray_1
+
+Dim i As Long
+
+'```VB
+Dim oSHA256 As New CSHA256
+Dim prng_state(0 To 31) As Byte
+oSHA256.UpdateStringUTF16LE "This string is a seed for the PRNG"
+For i = 1 To 32
+    oSHA256.DigestIntoArray prng_state, 0
+    Debug.Print Left$("0", -(prng_state(0) < &H10)); Hex(prng_state(0));
+    oSHA256.Reset
+    oSHA256.UpdateBytesArray prng_state
+Next
+' prints:
+' CEF41D7F8DF42831B05B7D0DBEAF45525DEFAD0174AB3769C9C24937C8AC2325
 '```
 End Sub

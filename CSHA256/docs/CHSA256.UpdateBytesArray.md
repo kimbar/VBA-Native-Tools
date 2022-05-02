@@ -41,7 +41,9 @@ code page into bytes.
 ```VB
 Dim oSHA256 As New CSHA256
 oSHA256.UpdateBytesArray StrConv("The quick brown fox® jumps over the lazy dog®", vbFromUnicode)
-Debug.Print oSHA256.Digest
+Debug.Print oSHA256.DigestAsHexString
+' prints:
+' 5194503420FD84936AC302EC6048430F7C96555922F16E03408D4D1C428F8BEB
 ```
 
 For pure-ASCII strings see
@@ -49,8 +51,36 @@ For pure-ASCII strings see
 [`CHSA256.UpdateStringUTF16LE()`](./CHSA256.UpdateStringUTF16LE.md). Other encodings should be encoded into byte array
 first by means of other libraries and feed into `CHSA256.UpdateBytesArray()`. See [general remarks](../README.md#remarks) for details about encoding issues.
 
-{example description}
+---
+
+Obtaining hash value of a file.
 
 ```VB
-{example}
+Dim oSHA256 As New CSHA256
+Dim fso As Object: Set fso = CreateObject("Scripting.FileSystemObject")
+Const BLOCKSIZE As Long = 1024&    ' 1KB at a time
+Dim data(0 To BLOCKSIZE - 1) As Byte
+Dim filename As String: filename = ".\file.exe"
+Dim fileNo As Integer: fileNo = FreeFile
+Dim block_idx As Long
+Dim bytes_read As Long
+
+Open filename For Binary Access Read As #fileNo
+Do
+    If (block_idx + 1) * BLOCKSIZE < LOF(fileNo) Then
+        bytes_read = BLOCKSIZE
+    Else
+        bytes_read = LOF(fileNo) - (block_idx * BLOCKSIZE)
+    End If
+    If bytes_read < 0 Then Exit Do
+
+    Get #fileNo, 1 + block_idx * BLOCKSIZE, data
+    oSHA256.UpdateBytesArray data, length:=bytes_read
+
+    block_idx = block_idx + 1
+    DoEvents
+Loop
+Close #fileNo
+
+Debug.Print oSHA256.DigestAsHexString
 ```

@@ -28,6 +28,8 @@ Debug.Print oSHA256.DigestAsHexString
 ' E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855
 ```
 
+---
+
 Calculation of the hash of ASCII string.
 
 ```VB

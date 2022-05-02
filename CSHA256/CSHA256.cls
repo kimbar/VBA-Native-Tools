@@ -445,7 +445,7 @@ Private Sub ChurnTheChunk()
     hash(6) = UnsigSum(hash(6), g)
     hash(7) = UnsigSum(hash(7), h)
     ' We clear the buffer (chunk) (at least the original data part) right away because this simplifies reasoning
-    ' in al of the `Update*` subs.
+    ' in all of the `Update*` subs.
 skip:
     For idx = 0 To 15
         w(idx) = 0&
